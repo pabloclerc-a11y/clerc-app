@@ -1,0 +1,9 @@
+CLERC 18 - COPIA PREPARADA (NO REEMPLAZA TU APP)
+
+1. Esta carpeta incluye el HTML de CLERC 18, logo original, iconos y archivos de instalacion web.
+2. En Windows: descomprime el ZIP en una carpeta y usa ABRIR_CLERC_VENTANA.cmd para abrir sin pestanas. No muevas archivos sueltos.
+3. En Android: para instalarla como aplicacion sin pestanas, la carpeta debe publicarse en un alojamiento HTTPS (no basta OneDrive ni abrir el HTML descargado).
+4. IMPORTANTE: la version nueva no comparte automaticamente clientes con el archivo viejo. Importa una copia JSON solo despues de verificar la nueva version.
+5. No existe aun sincronizacion automatica entre dispositivos ni copias diarias automaticas.
+6. No borres el archivo antiguo ni los respaldos.
+7. El logo esta integrado localmente; mapas y busqueda de codigos postales requieren internet.

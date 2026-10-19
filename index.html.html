@@ -1,0 +1,198 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CLERC · Versión 18 · Nueva llamada</title><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/png" href="./icon-192.png"><link rel="apple-touch-icon" href="./icon-192.png"><meta name="theme-color" content="#0b2745"><style>
+:root{font-family:Arial,Helvetica,sans-serif;color:#10223f;background:#f3f7fc}*{box-sizing:border-box}body{margin:0}.app{display:flex;min-height:100vh}aside{width:224px;flex-shrink:0;background:#0b2745;color:#fff;padding:22px 12px;display:flex;flex-direction:column}.brand{text-align:center;font-size:29px;font-weight:800;margin-bottom:35px}.brand small{display:block;font-size:11px;font-weight:400;line-height:1.5}.nav{padding:14px;border-radius:8px;margin:4px 0}.nav.active{background:#086cf0}.bottom{margin-top:auto;padding:18px 12px;border-top:1px solid #35506c}main{flex:1;min-width:0;padding:24px;max-width:1500px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.top h1{margin:0;font-size:30px}.muted{color:#536680;margin:6px 0}.layout{display:grid;grid-template-columns:1fr 1.03fr;gap:14px}.panel{background:white;border:1px solid #e1e9f3;border-radius:10px;padding:19px;margin-bottom:14px}.panel h2{font-size:19px;margin:0 0 18px}.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.fields.three{grid-template-columns:repeat(3,minmax(0,1fr))}.field{min-width:0}label{display:block;font-size:14px;font-weight:600;margin:0 0 6px}label b{color:#e33}input,select,textarea{width:100%;border:1px solid #cbd8e9;border-radius:6px;background:#fff;padding:11px 12px;font-size:15px;color:#10223f}input:focus,select:focus,textarea:focus{outline:2px solid #88bafa}textarea{resize:vertical;min-height:80px}.subhead{border-top:1px solid #e3eaf4;margin-top:20px;padding-top:15px}.locality{position:relative}.results{position:absolute;top:100%;left:0;right:0;z-index:10;background:white;border:1px solid #a8c5f5;border-radius:7px;max-height:230px;overflow:auto;box-shadow:0 12px 22px #142e4b25}.option{padding:9px 12px;cursor:pointer}.option:hover{background:#eaf3ff}.note{font-size:12px;color:#60728a;margin-top:5px}.map{height:230px;background:linear-gradient(130deg,#e8f4e6,#d5e8f8);border:1px solid #c9dceb;border-radius:8px;display:flex;align-items:center;justify-content:center;text-align:center;color:#52677e}.btn{border:0;border-radius:7px;padding:13px 19px;cursor:pointer;font-size:15px;font-weight:600}.primary{background:#086cf0;color:#fff}.secondary{background:#e9edf3;color:#14243b}.green{background:#05a848;color:white;padding:10px}.full{width:100%}.states{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.state{border:1px solid #cbdaf1;border-radius:7px;padding:14px 6px;text-align:center;cursor:pointer;background:#eaf4ff;color:#005fd0;font-size:13px;font-weight:700}.state:nth-child(2){background:#f5efff;color:#7222e0}.state:nth-child(3){background:#fff7e9;color:#bd6500}.state:nth-child(4){background:#eafaf0;color:#008943}.state:has(input:checked){outline:3px solid #137af7}.state input{width:auto;display:block;margin:0 auto 8px}.footer{display:flex;justify-content:space-between;margin-top:10px}.saved{margin-top:15px}.saveditem{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px;border-top:1px solid #e0e8f0}.small{font-size:13px}.error{color:#a21c22}.success{color:#087537}button:disabled{opacity:.55;cursor:not-allowed}@media(max-width:900px){aside{display:none}.layout{grid-template-columns:1fr}main{padding:12px}.states{grid-template-columns:repeat(2,1fr)}}@media(max-width:500px){.fields,.fields.three{grid-template-columns:1fr}.top h1{font-size:24px}}
+#cp{width:6.8ch;min-width:6.8ch;max-width:6.8ch;box-sizing:content-box;padding:11px 9px;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.map{position:relative;overflow:hidden;background:#e8f0f7}
+.map [hidden]{display:none!important}.map iframe{width:100%;height:100%;border:0;pointer-events:none;display:block}
+.map .map-link{position:absolute;inset:0;display:block;cursor:pointer;z-index:1}
+.map .map-empty{font-size:14px;padding:16px}
+.transfer-box{margin:20px 0 10px;padding:16px;border:1px solid #cbd9ec;border-radius:12px;background:#f6f9fd}.transfer-box button{padding:10px 12px;border:0;border-radius:8px;background:#143958;color:white;font-weight:700;cursor:pointer;margin-top:8px}.transfer-box button:hover{filter:brightness(1.15)}
+</style><style>
+.entry{position:fixed;inset:0;background:#f3f7fc;z-index:20;display:flex;align-items:center;justify-content:center;padding:20px}.entry[hidden]{display:none}.entrycard{width:min(620px,100%);background:white;border-radius:18px;padding:32px;box-shadow:0 15px 50px #12294420;text-align:center}.entrycard h1{color:#102747}.entryactions{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:25px 0}.entryactions button{border:0;border-radius:12px;padding:23px 12px;background:#086cf0;color:white;font-size:18px;font-weight:700;cursor:pointer}.entryactions button:last-child{background:#143958}.entrylist{text-align:left;max-height:260px;overflow:auto}.entrylist button{display:block;width:100%;margin:5px 0;padding:12px;text-align:left;border:1px solid #cbd9ec;border-radius:8px;background:white;cursor:pointer}.entrysearch{width:100%;padding:12px;border:1px solid #cbd9ec;border-radius:8px}.entrysmall{color:#586d87;font-size:14px}
+@media(max-width:550px){.entryactions{grid-template-columns:1fr}}
+.brand img{width:132px;max-height:100px;object-fit:contain;display:block;margin:0 auto 8px;border-radius:8px}.entrycard .entrylogo{width:120px;max-height:90px;object-fit:contain;display:block;margin:0 auto 12px}</style></head><body><div class="entry" id="entry"><div class="entrycard"><img class="entrylogo" src="./logo.jpeg" alt="Logo original de CLERC"><h1>CLERC · Versión 18 · Nueva llamada</h1><p>¿Qué tipo de cliente vas a registrar?</p><div class="entryactions"><button type="button" id="pendingToday" style="background:#c62828;color:#fff;border:1px solid #9d1717;font-weight:800">🔔 PENDIENTES DE HOY <span id="pendingBadge"></span></button><button type="button" id="newClient">＋ Cliente nuevo</button><button type="button" id="otherClient" style="background:#238b45;color:#fff;border:1px solid #176b33;font-weight:800">⌕ Cliente</button><button type="button" id="homeCalls" style="background:#143958">☷ Llamadas</button></div><div id="pickExisting" hidden><p class="entrysmall">Selecciona un cliente guardado</p><input class="entrysearch" id="searchExisting" placeholder="Buscar por nombre o teléfono"><div id="existingList" class="entrylist"></div></div><div class="transfer-box"><strong>Pasar clientes entre ordenador y móvil</strong><p class="entrysmall">Exporta una copia en el ordenador y luego impórtala en el móvil.</p><button type="button" id="exportClients">⬇ Exportar clientes</button> <button type="button" id="importClients">⬆ Importar clientes</button><input id="importFile" type="file" accept=".json,application/json" hidden><p class="entrysmall" id="transferStatus" role="status"></p></div><p class="entrysmall">Versión 18: importa la copia JSON de la versión 17. No modifica la versión anterior.</p></div></div><div id="pendingView" hidden style="max-width:950px;margin:30px auto;padding:20px"><button type="button" id="pendingBack" class="btn secondary">← Volver</button><h1>🔔 PENDIENTES DE HOY</h1><p class="muted">Llamadas, visitas y presupuestos para hoy y atrasados. El seguimiento de presupuestos enviados vence a los 7 días.</p><div id="pendingItems"></div></div><div class="app" id="mainApp"><aside><div class="brand"><img src="./logo.jpeg" alt="Logo original de CLERC">CLERC<small>PINTURAS Y REFORMAS<br>ALICANTE</small></div><button type="button" class="nav" id="goHome" style="width:100%;text-align:left;border:0;cursor:pointer;font:inherit">⌂ Inicio</button><button type="button" class="nav active" id="navNewCall" style="width:100%;text-align:left;border:0;cursor:pointer;font:inherit">☎ Nueva llamada</button><button type="button" class="nav" id="navClients" style="width:100%;text-align:left;border:0;cursor:pointer;font:inherit">♙ Clientes</button><button type="button" class="nav" id="navCalls" style="width:100%;text-align:left;border:0;cursor:pointer;font:inherit">☷ Llamadas</button><div class="bottom">Pablo</div></aside><main><div class="top"><div><h1>🔵 Nueva llamada</h1><p class="muted">Introduce los datos del cliente y guarda la llamada</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn secondary" type="button" id="goHomeTop">← Inicio</button><button class="btn secondary" type="button" id="clear">Limpiar</button></div></div><form id="form" autocomplete="off"><div class="layout"><section><div class="panel"><h2>👤 Datos del cliente</h2><div class="fields"><div class="field"><label>Nombre <b>*</b></label><input name="nombre" required placeholder="Nombre"></div><div class="field"><label>Apellidos</label><input name="apellidos" placeholder="Apellidos"></div><div class="field"><label>Teléfono <b>*</b></label><input name="telefono" type="tel" required placeholder="Número de teléfono"></div><div class="field" style="display:flex;align-items:end;gap:8px"><a id="call" class="btn green" style="text-decoration:none" href="#">☎ Llamar</a><a id="wa" class="btn green" style="text-decoration:none" href="#" target="_blank" rel="noopener">WhatsApp</a></div></div><h2 class="subhead">📍 Dirección</h2><div class="field" style="margin-bottom:12px"><label>Calle o avenida <b>*</b></label><input name="calle" required placeholder="Calle o avenida"></div><div class="fields three"><div class="field"><label>Número <b>*</b></label><input name="numero" required placeholder="N.º"></div><div class="field"><label>Piso</label><input name="piso" placeholder="Piso"></div><div class="field"><label>Puerta</label><input name="puerta" placeholder="Puerta"></div></div><div class="fields" style="margin-top:13px"><div class="field locality"><label>Localidad <b>*</b></label><input name="localidad" id="localidad" required placeholder="Buscar localidad..." aria-autocomplete="list"><div id="results" class="results" hidden></div><div class="note">Localidades de referencia próximas a Alicante (lista provisional).</div></div><div class="field"><label>Código postal (automático)</label><input name="cp" id="cp" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" placeholder="Se busca automáticamente"><div id="cpstatus" class="note" aria-live="polite">Introduce localidad, calle y número.</div></div></div><div class="field" style="margin-top:13px"><label>Observaciones de la dirección</label><textarea name="observaciones" placeholder="Urbanización, bloque, escalera, indicaciones para llegar..."></textarea></div></div></section><section><div class="panel"><h2>📍 Ubicación en el mapa</h2><div class="map" id="mapPreview"><div class="map-empty" id="mapEmpty">Introduce la dirección para ver el mapa aquí.</div><iframe id="mapFrame" title="Mapa de la dirección" loading="lazy" referrerpolicy="no-referrer-when-downgrade" hidden></iframe><a id="mapLink" class="map-link" href="#" target="_blank" rel="noopener noreferrer" title="Pulsa sobre el mapa para abrirlo en Google Maps" aria-label="Abrir este mapa en Google Maps" hidden></a></div><div class="note">Pulsa sobre el mapa para abrirlo en Google Maps.</div></div><div class="panel"><h2>🌐 ¿Cómo nos conoció?</h2><div class="fields"><div class="field"><label>Origen</label><select name="origen"><option value="">Selecciona una opción</option><option>Google</option><option>Boca a boca</option><option>Cliente anterior</option><option>Redes sociales</option><option>Otros</option></select></div><div class="field"><label>Otros (especificar)</label><input name="origenOtro" placeholder="Escribe cómo nos conoció..."></div></div></div><div class="panel"><h2>📄 ¿Qué necesita el cliente?</h2><textarea name="necesita" placeholder="Describe el trabajo que necesita, tipo de reforma, pintura, etc."></textarea></div></section></div><div class="panel"><h2>☎ Estado de la llamada</h2><div class="states"><label class="state"><input type="radio" name="estado" value="LLAMAR" checked>☎ LLAMAR</label><label class="state"><input type="radio" name="estado" value="VISITAR">▦ VISITAR</label><label class="state"><input type="radio" name="estado" value="PRESUPUESTAR">▤ PRESUPUESTAR</label><label class="state"><input type="radio" name="estado" value="PRESUPUESTADO">✔ PRESUPUESTADO</label></div><p class="note">🔔 Cuando el estado sea PRESUPUESTADO, se anotará una fecha de seguimiento a los 7 días. Esta prueba no envía notificaciones al móvil ni al correo.</p></div><div class="footer"><button class="btn secondary" type="button" id="cancel">Cancelar</button><button class="btn primary" type="submit">▣ Guardar llamada</button></div><p id="message" role="status"></p></form><section class="panel saved"><h2>Clientes guardados en esta prueba <span id="count">(0)</span></h2><div class="note">Versión 18 de prueba: los registros se guardan en este navegador, separados de la versión 17. Aún no hay sincronización automática.</div><div id="saved"></div></section></main></div><script>
+'use strict';const KEY='clerc_nueva_llamada_v18_20261015';const form=document.getElementById('form'),loc=document.getElementById('localidad'),results=document.getElementById('results'),cp=document.getElementById('cp'),msg=document.getElementById('message');const towns=['Alicante / Alacant','Agost','Aigües','Albatera','Alcoy / Alcoi','Almoradí','Altea','Aspe','Banyeres de Mariola','Benejúzar','Benidorm','Benijófar','Biar','Bigastro','Busot','Callosa de Segura','Castalla','Catral','Cocentaina','Crevillent','Daya Nueva','Daya Vieja','Dolores','El Campello','Elche / Elx','Elda','Finestrat','Formentera del Segura','Guardamar del Segura','Hondón de las Nieves','Hondón de los Frailes','Ibi','Jijona / Xixona','La Nucía','La Romana','Los Montesinos','Monforte del Cid','Monóvar / Monòver','Muchamiel / Mutxamel','Novelda','Onil','Orihuela','Petrer','Pilar de la Horadada','Pinoso / El Pinós','Rafal','Redován','Relleu','Rojales','San Fulgencio','San Isidro','San Juan de Alicante / Sant Joan d’Alacant','San Miguel de Salinas','San Vicente del Raspeig / Sant Vicent del Raspeig','Santa Pola','Sax','Tibi','Torrevieja','Villajoyosa / La Vila Joiosa','Villena'];let editId=null;function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return []}}function store(a){localStorage.setItem(KEY,JSON.stringify(a))}function clean(s){return String(s||'').trim()}function hide(){results.hidden=true}function show(){const q=loc.value.toLocaleLowerCase('es').trim();const matching=towns.filter(x=>x.toLocaleLowerCase('es').includes(q)).slice(0,30);results.replaceChildren();matching.forEach(x=>{const b=document.createElement('div');b.className='option';b.textContent=x;b.addEventListener('mousedown',e=>{e.preventDefault();loc.value=x;hide();schedulePostal();updateMap()});results.appendChild(b)});results.hidden=!matching.length}loc.addEventListener('focus',show);loc.addEventListener('input',()=>{show();schedulePostal()});loc.addEventListener('blur',()=>setTimeout(hide,130));cp.addEventListener('input',()=>{cp.value=cp.value.replace(/\D/g,'').slice(0,5)});
+const cpstatus=document.getElementById('cpstatus');let postalTimer=null,postalSeq=0,lastAddress='';function postalAddress(){return [clean(form.elements.calle.value),clean(form.elements.numero.value),clean(loc.value)].join('|').toLocaleLowerCase('es')}function norm(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'')}function streetName(s){return norm(s).replace(/^(calle|avenida|avda|avinguda|carrer|plaza|placa|paseo|passeig)/,'')}function isAlicante(t){return /^(alicante|alacant)$/.test(norm(t.split('/')[0]))}
+function normalizedStreet(s){return streetName(s).replace(/siano$/,'').replace(/^deportista/,'').replace(/^dep/,'').replace(/^senador/,'').replace(/^sen\.?/,'')}
+function streetVariants(calle){
+  const raw=calle.trim().replace(/^(calle|carrer|avenida|avda|avinguda|plaza|paseo)\s+/i,'');
+  const withoutTitle=raw.replace(/^(senador|sen\.?|deportista|dep\.?)\s+/i,'').trim();
+  return [...new Set([calle,raw,withoutTitle].filter(Boolean))];
+}
+function knownPostal(calle,numero,localidad){
+  if(isAlicante(localidad)&&norm(numero)==='8'&&normalizedStreet(calle)==='victoriakent')return '03008';
+  if(isAlicante(localidad)&&norm(numero)==='3'&&normalizedStreet(calle)==='joaquinblume')return '03008';
+  return null;
+}
+function repairSavedPostal(){const records=load();let changed=false;for(const r of records){const found=knownPostal(r.calle||'',r.numero||'',r.localidad||'');if(found&&r.cp!==found){r.cp=found;changed=true}}if(changed)try{store(records)}catch(e){}}
+repairSavedPostal();
+function setPostal(code,source){cp.value=code;cpstatus.textContent=source;cpstatus.className='note success'}
+function schedulePostal(){
+  clearTimeout(postalTimer);const seq=++postalSeq;
+  const calle=clean(form.elements.calle.value),numero=clean(form.elements.numero.value),localidad=clean(loc.value);
+  const key=postalAddress();
+  if(key!==lastAddress){cp.value='';lastAddress=key}
+  if(!calle||!numero||!localidad){cpstatus.textContent='Introduce localidad, calle y número.';cpstatus.className='note';return}
+  cpstatus.textContent='Consultando CartoCiudad...';cpstatus.className='note';
+  postalTimer=setTimeout(()=>lookupPostal(seq,calle,numero,localidad),500)
+}
+function localityMatches(result,localidad){
+  const desired=norm(localidad.split('/')[0]);
+  const variants=String(result.muni||result.poblacion||'').split('/').map(norm);
+  if(isAlicante(localidad))return variants.includes('alicante')||variants.includes('alacant');
+  return variants.includes(desired);
+}
+function candidateMatches(result,calle,numero,localidad){
+  if(!/^\d{5}$/.test(String(result.postalCode||'')))return false;
+  if(!localityMatches(result,localidad))return false;
+  if(String(result.portalNumber??'').trim()!==String(Number(numero)))return false;
+  const expected=normalizedStreet(calle);
+  const address=normalizedStreet(String(result.address||'').split(',')[0].replace(/\b\d+[A-Za-z]?\s*$/,''));
+  return !!expected&&(address.includes(expected)||expected.includes(address));
+}
+async function lookupPostal(seq,calle,numero,localidad){
+  const town=localidad.split('/')[0].trim();
+  const variants=streetVariants(calle.replace(/\s+siano\s*$/i,''));
+  let serviceReached=false;
+  async function search(endpoint,query){
+    try{
+      const url=new URL('https://www.cartociudad.es/geocoder/api/geocoder/'+endpoint);
+      url.searchParams.set('q',query);
+      if(endpoint==='candidates')url.searchParams.set('limit','30');
+      const response=await fetch(url.toString(),{headers:{Accept:'application/json'}});
+      if(!response.ok)return [];
+      serviceReached=true;
+      const data=await response.json();
+      return Array.isArray(data)?data:(data&&typeof data==='object'?[data]:[]);
+    }catch{return []}
+  }
+  for(const endpoint of ['candidates','find']){
+    for(const street of variants){
+      if(seq!==postalSeq)return;
+      const items=await search(endpoint,street+' '+numero+', '+town);
+      if(seq!==postalSeq)return;
+      const exact=items.filter(x=>candidateMatches(x,calle,numero,localidad));
+      const codes=[...new Set(exact.map(x=>String(x.postalCode)))];
+      if(codes.length===1){setPostal(codes[0],'Código postal obtenido de CartoCiudad para esta dirección.');return}
+    }
+  }
+  // Si no se localiza el portal, buscar la calle sin número. Solo aceptar
+  // el CP cuando las fuentes devuelvan una única calle y un único código.
+  const streetCodes=new Set();
+  for(const street of variants){
+    if(seq!==postalSeq)return;
+    const items=await search('find',street+', '+town);
+    if(seq!==postalSeq)return;
+    for(const x of items){
+      if(!/^\d{5}$/.test(String(x.postalCode||''))||!localityMatches(x,localidad))continue;
+      if(x.type==='portal')continue;
+      const expected=normalizedStreet(calle);
+      const found=normalizedStreet(String(x.address||''));
+      if(expected&&found&&(expected.includes(found)||found.includes(expected)))streetCodes.add(String(x.postalCode));
+    }
+  }
+  if(streetCodes.size===1){
+    cp.value=[...streetCodes][0];
+    cpstatus.textContent='Código postal de la calle (no se ha confirmado el número). Compruébalo antes de guardar.';
+    cpstatus.className='note';
+    return;
+  }
+  const confirmed=knownPostal(calle,numero,localidad);
+  if(confirmed){setPostal(confirmed,'Código postal confirmado para esta dirección.');return}
+  cpstatus.textContent=serviceReached?'No se encontró un código postal seguro. Compruébalo en Correos e introdúcelo manualmente.':'No se pudo consultar CartoCiudad. Comprueba la conexión e introduce el código manualmente.';
+  cpstatus.className='note';
+}
+for(const name of ['calle','numero'])form.elements[name].addEventListener('input',schedulePostal);function tel(){const v=form.elements.telefono.value.replace(/[^\d+]/g,'');document.getElementById('call').href=v?'tel:'+v:'#';document.getElementById('wa').href=v?'https://wa.me/'+v.replace(/^\+/,''):'#'}form.elements.telefono.addEventListener('input',tel);function address(){return [form.elements.calle.value,form.elements.numero.value,form.elements.localidad.value,form.elements.cp.value,'España'].filter(Boolean).join(', ')}let mapTimer=null;let mapLast='';function updateMap(){clearTimeout(mapTimer);const street=clean(form.elements.calle.value),number=clean(form.elements.numero.value),town=clean(loc.value);const frame=document.getElementById('mapFrame'),link=document.getElementById('mapLink'),empty=document.getElementById('mapEmpty');if(!street||!number||!town){frame.hidden=true;link.hidden=true;empty.hidden=false;return}const q=[street,number,town,'España'].join(', ');if(q===mapLast)return;mapTimer=setTimeout(()=>{mapLast=q;frame.src='https://www.google.com/maps?q='+encodeURIComponent(q)+'&output=embed';link.href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);frame.hidden=false;link.hidden=false;empty.hidden=true},600)}for(const field of ['calle','numero','localidad'])form.elements[field].addEventListener('input',updateMap);function clear(){clearTimeout(postalTimer);postalSeq++;lastAddress='';mapLast='';document.getElementById('mapFrame').removeAttribute('src');form.reset();updateMap();cpstatus.textContent='Introduce localidad, calle y número.';editId=null;msg.textContent='';hide();tel();window.scrollTo({top:0,behavior:'smooth'})}document.getElementById('clear').onclick=clear;document.getElementById('cancel').onclick=clear;form.addEventListener('submit',e=>{e.preventDefault();if(!form.reportValidity())return;const localidad=clean(loc.value);if(!towns.includes(localidad)){msg.textContent='Selecciona una localidad del desplegable.';msg.className='error';loc.focus();return}if(cp.value&&!/^\d{5}$/.test(cp.value)){msg.textContent='El código postal debe tener exactamente 5 cifras.';msg.className='error';cp.focus();return}const data=Object.fromEntries(new FormData(form).entries());const a=load(),now=new Date(),old=a.find(x=>x.id===editId);const item={...data,id:editId||('c'+Date.now()+Math.random().toString(36).slice(2)),creado:old?.creado||now.toISOString(),actualizado:now.toISOString(),seguimiento:data.estado==='PRESUPUESTADO'?(old?.estado==='PRESUPUESTADO'&&old?.seguimiento?old.seguimiento:new Date(now.getTime()+7*86400000).toISOString()):null};if(editId){a[a.findIndex(x=>x.id===editId)]=item}else{a.unshift(item)}try{store(a);render();clear();msg.textContent='Cliente guardado correctamente en este navegador.';msg.className='success'}catch{msg.textContent='No se ha podido guardar. Revisa el almacenamiento del navegador.';msg.className='error'}});function render(){const a=load(),box=document.getElementById('saved');document.getElementById('count').textContent='('+a.length+')';box.replaceChildren();a.forEach(x=>{const r=document.createElement('div');r.className='saveditem';const t=document.createElement('span');t.className='small';t.textContent=[x.nombre,x.apellidos,'—',x.localidad,'—',x.cp||'CP pendiente','—',x.estado].join(' ');const b=document.createElement('button');b.type='button';b.className='btn secondary';b.textContent='Editar';b.addEventListener('click',()=>{editId=x.id;for(const [k,v] of Object.entries(x)){if(form.elements[k]&&k!=='id'){const el=form.elements[k];if(k==='estado'){const radio=form.querySelector('input[name="estado"][value="'+v+'"]');if(radio)radio.checked=true}else el.value=v||''}}tel();schedulePostal();updateMap();msg.textContent='Editando cliente existente';msg.className='';window.scrollTo({top:0,behavior:'smooth'})});r.append(t,b);box.appendChild(r)})}tel();render();
+const entry=document.getElementById('entry'),pick=document.getElementById('pickExisting'),searchExisting=document.getElementById('searchExisting'),existingList=document.getElementById('existingList');
+function openEntry(){if(typeof showMainForm==='function')showMainForm();document.getElementById('pendingView').hidden=true;document.getElementById('mainApp').hidden=false;entry.hidden=false;pick.hidden=true;searchExisting.value='';renderPending()}
+function dateOnly(d){const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}
+function dueDate(x){if(x.estado==='PRESUPUESTADO')return x.seguimiento?dateOnly(x.seguimiento):'';if(!['LLAMAR','VISITAR','PRESUPUESTAR'].includes(x.estado))return '';const d=new Date(x.creado||x.actualizado||Date.now());d.setDate(d.getDate()+1);return dateOnly(d)}
+function renderPending(){const today=dateOnly(new Date());const pending=load().map(x=>({...x,vence:dueDate(x)})).filter(x=>x.vence&&x.vence<=today).sort((a,b)=>a.vence.localeCompare(b.vence));const box=document.getElementById('pendingItems');box.replaceChildren();document.getElementById('pendingBadge').textContent=pending.length?'('+pending.length+')':'';if(!pending.length){const el=document.createElement('p');el.className='panel';el.textContent='No hay pendientes para hoy.';box.append(el);return}for(const x of pending){const el=document.createElement('div');el.className='panel';el.style.marginBottom='12px';const title=document.createElement('strong');title.textContent=[x.nombre,x.apellidos].filter(Boolean).join(' ')+' · '+(x.estado==='PRESUPUESTADO'?'SEGUIMIENTO DE PRESUPUESTO':x.estado);const detail=document.createElement('p');detail.className='muted';detail.textContent='Vencimiento: '+x.vence+(x.vence<today?' · ATRASADO':'')+' · '+[x.calle,x.numero,x.localidad].filter(Boolean).join(', ');const btn=document.createElement('button');btn.type='button';btn.className='btn primary';btn.textContent='Abrir ficha';btn.onclick=()=>{document.getElementById('pendingView').hidden=true;document.getElementById('mainApp').hidden=false;selectClient(x);rememberForm()};el.append(title,detail,btn);box.append(el)}}
+document.getElementById('pendingToday').addEventListener('click',()=>{renderPending();entry.hidden=true;document.getElementById('mainApp').hidden=true;document.getElementById('pendingView').hidden=false});
+document.getElementById('pendingBack').addEventListener('click',()=>{document.getElementById('pendingView').hidden=true;document.getElementById('mainApp').hidden=false;openEntry()});
+renderPending();
+function selectClient(x){clear();editId=x.id;for(const [k,v] of Object.entries(x)){if(form.elements[k]&&k!=='id'){if(k==='estado'){const radio=form.querySelector('input[name="estado"][value="'+v+'"]');if(radio)radio.checked=true}else form.elements[k].value=v||''}}tel();schedulePostal();updateMap();entry.hidden=true;msg.textContent='Cliente existente seleccionado. Puedes actualizar sus datos.';msg.className='';}
+function listExisting(){const q=searchExisting.value.toLocaleLowerCase('es').trim();existingList.replaceChildren();const matches=load().filter(x=>[x.nombre,x.apellidos,x.telefono].join(' ').toLocaleLowerCase('es').includes(q));if(!matches.length){const p=document.createElement('p');p.className='entrysmall';p.textContent='No hay clientes guardados que coincidan.';existingList.appendChild(p)}matches.forEach(x=>{const b=document.createElement('button');b.type='button';b.textContent=[x.nombre,x.apellidos,'·',x.telefono].filter(Boolean).join(' ');b.addEventListener('click',()=>selectClient(x));existingList.appendChild(b)})}
+document.getElementById('newClient').addEventListener('click',()=>{clear();entry.hidden=true});document.getElementById('otherClient').addEventListener('click',()=>{pick.hidden=false;listExisting();searchExisting.focus()});searchExisting.addEventListener('input',listExisting);existingList.addEventListener('click',e=>{if(e.target.closest('button'))queueMicrotask(rememberForm)});
+// Aviso de salida: solo si el usuario ha modificado datos sin guardarlos.
+const userFields=['nombre','apellidos','telefono','calle','numero','piso','puerta','localidad','observaciones','origen','origenOtro','necesita','estado'];
+let savedFormSnapshot='';
+function formSnapshot(){return JSON.stringify(userFields.map(name=>{const el=form.elements[name];return name==='estado'?(form.querySelector('input[name="estado"]:checked')?.value||''):el?.value||''}))}
+function rememberForm(){savedFormSnapshot=formSnapshot()}
+function hasUnsavedChanges(){return entry.hidden&&formSnapshot()!==savedFormSnapshot}
+function confirmLeave(){return !hasUnsavedChanges()||window.confirm('Tienes datos del cliente sin guardar. ¿Quieres salir sin guardarlos?')}
+for(const id of ['goHome','goHomeTop'])document.getElementById(id).addEventListener('click',()=>{if(!confirmLeave())return;clear();openEntry();rememberForm()});
+for(const id of ['clear','cancel'])document.getElementById(id).addEventListener('click',e=>{
+  e.stopImmediatePropagation();
+  if(!confirmLeave())return;
+  clear();openEntry();rememberForm();
+},true);
+window.addEventListener('beforeunload',e=>{if(hasUnsavedChanges()){e.preventDefault();e.returnValue=''}});
+document.getElementById('newClient').addEventListener('click',rememberForm);
+for(const b of existingList.querySelectorAll('button'))b.addEventListener('click',rememberForm);
+form.addEventListener('submit',()=>{setTimeout(()=>{if(msg.className==='success')rememberForm()},0)});
+rememberForm();
+// Navegación lateral operativa, con protección de cambios no guardados.
+const topPanel=document.querySelector('#mainApp .top');
+const savedPanel=document.querySelector('#mainApp .saved');
+function showMainForm(){form.hidden=false;topPanel.hidden=false;savedPanel.hidden=false}
+function navToNewCall(){
+ if(!confirmLeave())return;
+ showMainForm();clear();entry.hidden=true;document.getElementById('pendingView').hidden=true;
+ document.getElementById('mainApp').hidden=false;rememberForm();
+ document.querySelector('#mainApp .top h1').textContent='🔵 Nueva llamada';
+}
+function navToClients(){
+ if(!confirmLeave())return;
+ clear();rememberForm();entry.hidden=true;
+ document.getElementById('pendingView').hidden=true;document.getElementById('mainApp').hidden=false;
+ form.hidden=true;topPanel.hidden=true;savedPanel.hidden=false;render();
+ savedPanel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+document.getElementById('navNewCall').addEventListener('click',navToNewCall);
+document.getElementById('navClients').addEventListener('click',navToClients);
+document.getElementById('navCalls').addEventListener('click',navToClients);
+document.getElementById('homeCalls').addEventListener('click',()=>{navToClients();if(entry.hidden){document.querySelector('#mainApp .saved').scrollIntoView({behavior:'smooth',block:'start'})}});
+// Al abrir un cliente desde el listado se muestra de nuevo su ficha.
+document.getElementById('saved').addEventListener('click',e=>{
+ if(e.target.closest('button')){showMainForm();document.querySelector('#mainApp .top h1').textContent='🔵 Nueva llamada';setTimeout(rememberForm,0)}
+});
+document.getElementById('goHome').addEventListener('click',showMainForm);
+document.getElementById('goHomeTop').addEventListener('click',showMainForm);
+document.getElementById('newClient').addEventListener('click',showMainForm);
+
+
+// Transferencia provisional de registros entre dispositivos, sin servidor.
+const transferStatus=document.getElementById('transferStatus');
+document.getElementById('exportClients').addEventListener('click',()=>{
+ const records=load();
+ if(!records.length){transferStatus.textContent='Todavía no hay clientes guardados en este navegador.';return}
+ const payload={app:'CLERC',format:'clientes-locales',version:1,exportedAt:new Date().toISOString(),clients:records};
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');a.href=url;a.download='CLERC_clientes_'+dateOnly(new Date())+'.json';
+ document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),30000);
+ transferStatus.textContent='Copia preparada: '+records.length+' registro(s). Guarda el archivo JSON y envíalo al otro dispositivo.';
+});
+document.getElementById('importClients').addEventListener('click',()=>document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change',async e=>{
+ const input=e.currentTarget;const file=input.files?.[0];if(!file)return;
+ try{
+  if(file.size>10*1024*1024)throw new Error('El archivo es demasiado grande.');
+  const data=JSON.parse(await file.text());
+  if(data?.app!=='CLERC'||!['clientes-locales','respaldo-local-v17'].includes(data?.format)||data?.version!==1||!Array.isArray(data.clients))
+   throw new Error('Este archivo no es una copia de clientes CLERC válida.');
+  if(data.clients.length>10000||!data.clients.every(x=>x&&typeof x==='object'&&!Array.isArray(x)&&typeof x.id==='string'&&typeof x.nombre==='string'))
+   throw new Error('La copia contiene registros no válidos.');
+  const current=load(),ids=new Set(current.map(x=>String(x.id)));
+  const incoming=data.clients.filter(x=>!ids.has(String(x.id)));
+  const duplicates=data.clients.length-incoming.length;
+  if(!confirm('La copia contiene '+data.clients.length+' registro(s).\nSe añadirán '+incoming.length+' nuevos y se omitirán '+duplicates+' ya existentes.\nNo se borrarán ni sustituirán los registros actuales.\n¿Importar?'))return;
+  store([...current,...incoming]);render();renderPending();
+  transferStatus.textContent='Importación terminada: '+incoming.length+' añadido(s), '+duplicates+' repetido(s) omitido(s).';
+  alert(transferStatus.textContent);
+ }catch(err){transferStatus.textContent='No se ha importado: '+(err.message||'archivo incorrecto')}
+ finally{input.value=''}
+});
+
+</script><script>if("serviceWorker" in navigator && location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}</script></body></html>
