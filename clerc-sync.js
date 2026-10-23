@@ -11,8 +11,57 @@ function display(){let yes=!!auth?.access_token;$('cloudLogin').hidden=yes;$('cl
 async function req(path,options={}){let h={'apikey':pub,'Content-Type':'application/json',...(auth?.access_token?{'Authorization':'Bearer '+auth.access_token}:{}),...(options.headers||{})};let r=await fetch(base+path,{...options,headers:h}),t=await r.text(),d;try{d=t?JSON.parse(t):null}catch{d=t}if(!r.ok)throw Error(d?.msg||d?.message||d?.error_description||d?.error||'Error '+r.status);return d}
 function setAuth(d){auth=d;localStorage.setItem(sessionKey,JSON.stringify(d));display()}
 async function ensure(){if(!auth)return false;if(auth.expires_at&&Date.now()<auth.expires_at*1000-60000)return true;if(!auth.refresh_token)return true;try{let d=await req('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:auth.refresh_token})});d.expires_at=Math.floor(Date.now()/1000)+(d.expires_in||3600);setAuth(d);return true}catch{auth=null;localStorage.removeItem(sessionKey);display();status('Sesión caducada. Volvé a entrar.');return false}}
-async function sync(){if(!auth)return;if(busy){queued=true;return}busy=true;try{if(!await ensure())return;status('Sincronizando…');let user=await req('/auth/v1/user');if(!user.id)throw Error('No se pudo identificar la cuenta');let remote=await req('/rest/v1/clerc_v18_sync?select=record_id,payload&owner_id=eq.'+encodeURIComponent(user.id));let local=load(),map=new Map(local.filter(x=>x?.id).map(x=>[String(x.id),x]));for(let row of remote||[]){let x=row.payload;if(x?.id&&!map.has(String(x.id)))map.set(String(x.id),x)}let merged=[...map.values()];if(merged.length!==local.length){localStorage.setItem(KEY,JSON.stringify(merged));render();renderPending()}if(merged.length)await req('/rest/v1/clerc_v18_sync?on_conflict=owner_id,record_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(merged.map(x=>({owner_id:user.id,record_id:String(x.id),payload:x,updated_at:new Date().toISOString()})))});status('Sincronizados '+merged.length+' clientes.')}catch(e){status('No se pudo sincronizar: '+e.message)}finally{busy=false;if(queued){queued=false;sync()}}}
-const oldStore=store;store=function(records){oldStore(records);if(auth)sync()};
+const dirtyKey='clerc_sync_pending_v2';
+function pending(){try{return JSON.parse(localStorage.getItem(dirtyKey)||'{}')}catch{return {}}}
+function savePending(p){localStorage.setItem(dirtyKey,JSON.stringify(p))}
+const oldStore=store;
+store=function(records){
+ const before=new Map(load().filter(x=>x?.id).map(x=>[String(x.id),JSON.stringify(x)]));
+ const p=pending();
+ for(const x of records){if(!x?.id)continue;const id=String(x.id),value=JSON.stringify(x);if(before.get(id)!==value)p[id]=value}
+ savePending(p);
+ oldStore(records);
+ if(auth)sync();
+};
+async function sync(){
+ if(!auth)return;
+ if(busy){queued=true;return}
+ busy=true;
+ try{
+  if(!await ensure())return;
+  status('Sincronizando…');
+  const user=await req('/auth/v1/user');
+  if(!user.id)throw Error('No se pudo identificar la cuenta');
+  const remote=await req('/rest/v1/clerc_v18_sync?select=record_id,payload&owner_id=eq.'+encodeURIComponent(user.id));
+  const remoteMap=new Map((remote||[]).filter(r=>r.payload?.id).map(r=>[String(r.record_id),r.payload]));
+  const local=load();
+  const localMap=new Map(local.filter(x=>x?.id).map(x=>[String(x.id),x]));
+  const changes=pending();
+  const uploads=[];
+  for(const [id,x] of localMap){
+   if(changes[id]){try{uploads.push(JSON.parse(changes[id]))}catch{uploads.push(x)}}
+   else if(!remoteMap.has(id))uploads.push(x);
+  }
+  if(uploads.length){
+   await req('/rest/v1/clerc_v18_sync?on_conflict=owner_id,record_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(uploads.map(x=>({owner_id:user.id,record_id:String(x.id),payload:x,updated_at:new Date().toISOString()})))});
+   for(const x of uploads)remoteMap.set(String(x.id),x);
+   const next=pending();
+   for(const x of uploads){const id=String(x.id);if(next[id]===changes[id])delete next[id]}
+   savePending(next);
+  }
+  const stillPending=pending();
+  const merged=new Map(remoteMap);
+  for(const [id,x] of localMap){if(stillPending[id])merged.set(id,x)}
+  const result=[...merged.values()];
+  if(JSON.stringify(result)!==JSON.stringify(local)){
+   localStorage.setItem('clerc_sync_backup_'+new Date().toISOString().slice(0,10),JSON.stringify(local));
+   localStorage.setItem(KEY,JSON.stringify(result));
+   render();renderPending();
+  }
+  status('Sincronizados '+result.length+' clientes.');
+ }catch(e){status('No se pudo sincronizar: '+e.message)}
+ finally{busy=false;if(queued){queued=false;sync()}}
+}
 $('cloudEnter').onclick=async()=>{try{let d=await req('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email:$('cloudEmail').value.trim(),password:$('cloudPass').value})});d.expires_at=Math.floor(Date.now()/1000)+(d.expires_in||3600);setAuth(d);await sync()}catch(e){status('No se pudo entrar: '+e.message)}};
 $('cloudSignup').onclick=async()=>{try{await req('/auth/v1/signup',{method:'POST',body:JSON.stringify({email:$('cloudEmail').value.trim(),password:$('cloudPass').value})});status('Revisá tu correo para confirmar la cuenta.')}catch(e){status(e.message)}};
 $('cloudRecover').onclick=async()=>{try{let email=$('cloudEmail').value.trim();if(!email)throw Error('Escribí tu correo primero');await req('/auth/v1/recover?redirect_to='+encodeURIComponent('https://pabloclerc-a11y.github.io/clerc-app/'),{method:'POST',body:JSON.stringify({email})});status('Revisá tu correo para recuperar la contraseña.')}catch(e){status(e.message)}};
