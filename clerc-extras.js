@@ -17,9 +17,39 @@ for(const event of ['pointerup','pointercancel'])canvas.addEventListener(event,(
 resetCanvas();
 $('eraseDrawing').onclick=()=>{if(confirm('¿Borrar el dibujo de esta ficha?'))resetCanvas()};
 $('saveNotes').onclick=()=>{const x=requireRecord();if(!x)return;const a=load(),i=a.findIndex(y=>y.id===x.id);if(i<0)return;a[i]={...a[i],notasLibres:$('clientNotes').value,croquis:hasDrawing?canvas.toDataURL('image/png'):null,actualizado:new Date().toISOString()};try{store(a);render();$('notesStatus').textContent='Notas y dibujo guardados. Se sincronizarán con tu cuenta.'}catch(e){$('notesStatus').textContent='No se pudo guardar: '+e.message}};
+function updateClient(change){const x=requireRecord();if(!x)return null;const a=load(),i=a.findIndex(y=>y.id===x.id);if(i<0)return null;a[i]={...a[i],...change,actualizado:new Date().toISOString()};store(a);render();return a[i]}
+const clearNotes=document.createElement('button');clearNotes.type='button';clearNotes.className='btn secondary';clearNotes.textContent='🗑️ Borrar notas y dibujo';clearNotes.style.color='#a21c22';$('saveNotes').parentElement.append(clearNotes);
+clearNotes.onclick=()=>{const x=requireRecord();if(!x)return;if(!confirm('¿Borrar las notas y el dibujo de '+x.nombre+'? Se quitarán también de los otros dispositivos.'))return;try{updateClient({notasLibres:'',croquis:null});$('clientNotes').value='';resetCanvas();$('notesStatus').textContent='Notas y dibujo borrados. Cambio pendiente de sincronizar.'}catch(e){$('notesStatus').textContent='No se pudo borrar: '+e.message}};
 function session(){try{return JSON.parse(localStorage.getItem('clerc_cloud_session_v1')||'null')}catch{return null}}
 async function api(path,options={}){const a=session();if(!a?.access_token)throw Error('Entrá en tu cuenta de sincronización primero.');const h={apikey:pub,Authorization:'Bearer '+a.access_token,...options.headers};const r=await fetch(base+path,{...options,headers:h});if(!r.ok){let t=await r.text();throw Error('Error '+r.status+': '+t.slice(0,140))}return r}
-async function listPhotos(x){const list=$('clientPhotoList');list.replaceChildren();$('photosStatus').textContent='Cargando fotos…';try{const a=session();if(!a?.user?.id)throw Error('Iniciá sesión en la nube.');const prefix=a.user.id+'/'+x.id;const r=await api('/storage/v1/object/list/'+bucket,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefix,limit:100,sortBy:{column:'created_at',order:'desc'}})});const files=await r.json();for(const f of files){if(!f.name||f.id===null)continue;const path=prefix+'/'+f.name;const signed=await api('/storage/v1/object/sign/'+bucket+'/'+encodeURIComponent(path).replaceAll('%2F','/'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({expiresIn:3600})});const d=await signed.json();const img=document.createElement('img');img.src=base+'/storage/v1'+d.signedURL;img.alt='Foto del cliente';img.style='width:130px;height:130px;object-fit:cover;border-radius:8px';img.onclick=()=>window.open(img.src,'_blank');list.append(img)}$('photosStatus').textContent=files.length?files.length+' foto(s) guardadas.':'Todavía no hay fotos.'}catch(e){$('photosStatus').textContent='No se pudieron cargar las fotos: '+e.message}}
+async function listPhotos(x){
+ const list=$('clientPhotoList');list.replaceChildren();$('photosStatus').textContent='Cargando fotos…';
+ try{
+  const a=session();if(!a?.user?.id)throw Error('Iniciá sesión en la nube.');
+  const prefix=a.user.id+'/'+x.id;
+  const r=await api('/storage/v1/object/list/'+bucket,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefix,limit:100,sortBy:{column:'created_at',order:'desc'}})});
+  const files=await r.json();let shown=0;
+  for(const f of files){
+   if(!f.name||f.id===null)continue;
+   const path=prefix+'/'+f.name;
+   const latest=load().find(c=>c.id===x.id)||x;
+   if((latest.fotosOcultas||[]).includes(path))continue;
+   const signed=await api('/storage/v1/object/sign/'+bucket+'/'+encodeURIComponent(path).replaceAll('%2F','/'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({expiresIn:3600})});
+   const d=await signed.json();
+   const tile=document.createElement('div');tile.style='display:flex;flex-direction:column;gap:6px;align-items:center';
+   const img=document.createElement('img');img.src=base+'/storage/v1'+d.signedURL;img.alt='Foto del cliente';img.style='width:130px;height:130px;object-fit:cover;border-radius:8px;cursor:pointer';img.onclick=()=>window.open(img.src,'_blank');
+   const remove=document.createElement('button');remove.type='button';remove.className='btn secondary';remove.style='padding:8px;color:#a21c22';remove.textContent='🗑️ Quitar foto';
+   remove.onclick=async()=>{
+    if(!confirm('¿Quitar esta foto de la ficha de '+x.nombre+'? La foto seguirá almacenada en la nube.'))return;
+    remove.disabled=true;
+    try{const now=load().find(c=>c.id===x.id);if(!now)throw Error('No se encontró el cliente');updateClient({fotosOcultas:[...new Set([...(now.fotosOcultas||[]),path])]});tile.remove();$('photosStatus').textContent='Foto quitada de la ficha. El archivo permanece guardado en la nube.'}
+    catch(e){remove.disabled=false;$('photosStatus').textContent='No se pudo quitar: '+e.message}
+   };
+   tile.append(img,remove);list.append(tile);shown++;
+  }
+  $('photosStatus').textContent=shown?shown+' foto(s) visibles.':'Todavía no hay fotos visibles.';
+ }catch(e){$('photosStatus').textContent='No se pudieron cargar las fotos: '+e.message}
+}
 async function handlePhotoChange(e){const x=requireRecord();if(!x)return;const a=session();if(!a?.user?.id){$('photosStatus').textContent='Iniciá sesión en la nube primero.';return}for(const file of e.target.files){if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>10*1024*1024){$('photosStatus').textContent='Usá JPG, PNG o WEBP de hasta 10 MB.';continue}const name=a.user.id+'/'+x.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+file.type.split('/')[1];try{$('photosStatus').textContent='Guardando foto…';await api('/storage/v1/object/'+bucket+'/'+name,{method:'POST',headers:{'Content-Type':file.type,'x-upsert':'false'},body:file});$('photosStatus').textContent='Foto guardada en la nube.'}catch(err){$('photosStatus').textContent='Error al guardar: '+err.message}}e.target.value='';await listPhotos(x)}
 $('clientPhotoInput').addEventListener('change',handlePhotoChange);
 $('clientPhotoCamera').addEventListener('change',handlePhotoChange);
