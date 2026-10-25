@@ -11,6 +11,27 @@ function display(){let yes=!!auth?.access_token;$('cloudLogin').hidden=yes;$('cl
 async function req(path,options={}){let h={'apikey':pub,'Content-Type':'application/json',...(auth?.access_token?{'Authorization':'Bearer '+auth.access_token}:{}),...(options.headers||{})};let r=await fetch(base+path,{...options,headers:h}),t=await r.text(),d;try{d=t?JSON.parse(t):null}catch{d=t}if(!r.ok)throw Error(d?.msg||d?.message||d?.error_description||d?.error||'Error '+r.status);return d}
 function setAuth(d){auth=d;localStorage.setItem(sessionKey,JSON.stringify(d));display()}
 async function ensure(){if(!auth)return false;if(auth.expires_at&&Date.now()<auth.expires_at*1000-60000)return true;if(!auth.refresh_token)return true;try{let d=await req('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:auth.refresh_token})});d.expires_at=Math.floor(Date.now()/1000)+(d.expires_in||3600);setAuth(d);return true}catch{auth=null;localStorage.removeItem(sessionKey);display();status('Sesión caducada. Volvé a entrar.');return false}}
+const deletedKey='clerc_deleted_clients_v1';
+function deleted(){try{return JSON.parse(localStorage.getItem(deletedKey)||'{}')}catch{return {}}}
+function saveDeleted(d){localStorage.setItem(deletedKey,JSON.stringify(d))}
+window.clercDeleteClient=async function(id){
+ if(!auth){throw Error('Conectate a la nube antes de eliminar un cliente.')}
+ if(!await ensure())throw Error('Volvé a iniciar sesión en la nube.');
+ const user=await req('/auth/v1/user');
+ if(!user?.id)throw Error('No se pudo comprobar la cuenta.');
+ const a=load(),client=a.find(x=>String(x.id)===String(id));
+ if(!client)throw Error('No se encontró el cliente.');
+ const backupKey='clerc_before_delete_'+Date.now();
+ localStorage.setItem(backupKey,JSON.stringify(a));
+ const d=deleted();d[String(id)]=new Date().toISOString();saveDeleted(d);
+ try{
+  await req('/rest/v1/clerc_v18_sync?owner_id=eq.'+encodeURIComponent(user.id)+'&record_id=eq.'+encodeURIComponent(String(id)),{method:'DELETE',headers:{Prefer:'return=minimal'}});
+  const p=pending();delete p[String(id)];savePending(p);
+  localStorage.setItem(KEY,JSON.stringify(a.filter(x=>String(x.id)!==String(id))));
+  render();renderPending();document.dispatchEvent(new Event('clerc-client-changed'));
+  return true;
+ }catch(e){const next=deleted();delete next[String(id)];saveDeleted(next);throw e}
+};
 const dirtyKey='clerc_sync_pending_v2';
 function pending(){try{return JSON.parse(localStorage.getItem(dirtyKey)||'{}')}catch{return {}}}
 function savePending(p){localStorage.setItem(dirtyKey,JSON.stringify(p))}
@@ -18,7 +39,8 @@ const oldStore=store;
 store=function(records){
  const before=new Map(load().filter(x=>x?.id).map(x=>[String(x.id),JSON.stringify(x)]));
  const p=pending();
- for(const x of records){if(!x?.id)continue;const id=String(x.id),value=JSON.stringify(x);if(before.get(id)!==value)p[id]=value}
+ const removed=deleted();
+ for(const x of records){if(!x?.id||removed[String(x.id)])continue;const id=String(x.id),value=JSON.stringify(x);if(before.get(id)!==value)p[id]=value}
  savePending(p);
  oldStore(records);
  if(auth)sync();
@@ -33,9 +55,9 @@ async function sync(){
   const user=await req('/auth/v1/user');
   if(!user.id)throw Error('No se pudo identificar la cuenta');
   const remote=await req('/rest/v1/clerc_v18_sync?select=record_id,payload&owner_id=eq.'+encodeURIComponent(user.id));
-  const remoteMap=new Map((remote||[]).filter(r=>r.payload?.id).map(r=>[String(r.record_id),r.payload]));
+  const tombstones=deleted();const remoteMap=new Map((remote||[]).filter(r=>r.payload?.id&&!tombstones[String(r.record_id)]).map(r=>[String(r.record_id),r.payload]));
   const local=load();
-  const localMap=new Map(local.filter(x=>x?.id).map(x=>[String(x.id),x]));
+  const localMap=new Map(local.filter(x=>x?.id&&!tombstones[String(x.id)]).map(x=>[String(x.id),x]));
   const changes=pending();
   const uploads=[];
   for(const [id,x] of localMap){
@@ -52,7 +74,7 @@ async function sync(){
   const stillPending=pending();
   const merged=new Map(remoteMap);
   for(const [id,x] of localMap){if(stillPending[id])merged.set(id,x)}
-  const result=[...merged.values()];
+  const result=[...merged.values()].filter(x=>!tombstones[String(x.id)]);
   if(JSON.stringify(result)!==JSON.stringify(local)){
    localStorage.setItem('clerc_sync_backup_'+new Date().toISOString().slice(0,10),JSON.stringify(local));
    localStorage.setItem(KEY,JSON.stringify(result));
