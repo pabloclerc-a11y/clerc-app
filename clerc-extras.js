@@ -6,7 +6,7 @@ let current=null,drawing=false,hasDrawing=false;
 function record(){return typeof editId!=='undefined'&&editId?load().find(x=>x.id===editId):null}
 function resetCanvas(){ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.strokeStyle='#152d50';ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';hasDrawing=false}
 function showDrawing(src){resetCanvas();if(!src)return;const img=new Image();img.onload=()=>{ctx.drawImage(img,0,0,canvas.width,canvas.height);hasDrawing=true};img.src=src}
-function refresh(){const x=record();if(x?.id!==current){current=x?.id||null;$('clientNotes').value=x?.notasLibres||'';showDrawing(x?.croquis||null);notes.hidden=true;photos.hidden=true;$('clientPhotoList').replaceChildren()}return x}
+function refresh(){const x=record();if(x?.id!==current){if(typeof trashNotesList!=='undefined')trashNotesList.hidden=true;current=x?.id||null;$('clientNotes').value=x?.notasLibres||'';showDrawing(x?.croquis||null);notes.hidden=true;photos.hidden=true;$('clientPhotoList').replaceChildren()}return x}
 function requireRecord(){const x=refresh();if(!x){alert('Primero guardá el cliente o abrí su ficha con Editar.');return null}return x}
 $('openNotes').onclick=()=>{if(!requireRecord())return;notes.hidden=!notes.hidden;photos.hidden=true};
 $('openPhotos').onclick=async()=>{const x=requireRecord();if(!x)return;photos.hidden=!photos.hidden;notes.hidden=true;if(!photos.hidden)await listPhotos(x)};
@@ -19,16 +19,16 @@ $('eraseDrawing').onclick=()=>{if(confirm('¿Borrar el dibujo de esta ficha?'))r
 $('saveNotes').onclick=()=>{const x=requireRecord();if(!x)return;const a=load(),i=a.findIndex(y=>y.id===x.id);if(i<0)return;a[i]={...a[i],notasLibres:$('clientNotes').value,croquis:hasDrawing?canvas.toDataURL('image/png'):null,actualizado:new Date().toISOString()};try{store(a);render();$('notesStatus').textContent='Notas y dibujo guardados. Se sincronizarán con tu cuenta.'}catch(e){$('notesStatus').textContent='No se pudo guardar: '+e.message}};
 function updateClient(change){const x=requireRecord();if(!x)return null;const a=load(),i=a.findIndex(y=>y.id===x.id);if(i<0)return null;a[i]={...a[i],...change,actualizado:new Date().toISOString()};store(a);render();return a[i]}
 const trashNotesBtn=document.createElement('button');trashNotesBtn.type='button';trashNotesBtn.className='btn secondary';trashNotesBtn.textContent='♻️ Notas eliminadas';$('saveNotes').parentElement.append(trashNotesBtn);
-const trashNotesList=document.createElement('div');trashNotesList.style='margin-top:12px';$('notesArea').append(trashNotesList);
+const trashNotesList=document.createElement('div');trashNotesList.style='margin-top:12px';trashNotesList.hidden=true;$('notesArea').append(trashNotesList);
 trashNotesBtn.onclick=()=>{
- const x=requireRecord();if(!x)return;trashNotesList.replaceChildren();
+ const x=requireRecord();if(!x)return;trashNotesList.hidden=!trashNotesList.hidden;if(trashNotesList.hidden)return;trashNotesList.replaceChildren();
  const items=x.notasPapelera||[];
- if(!items.length){trashNotesList.textContent='No hay notas eliminadas.';return}
+ if(!items.length){trashNotesList.textContent='No hay notas eliminadas para este cliente. Para probar, guardá una nota y después usá Borrar notas y dibujo.';return}
  for(const n of items){
   const item=document.createElement('div');item.style='padding:12px;border:1px solid #d5deea;border-radius:8px;margin-bottom:8px';
   const info=document.createElement('p');info.textContent=(n.fecha?new Date(n.fecha).toLocaleString('es-ES')+' — ':'')+(n.texto||'[Dibujo guardado]');
   const restore=document.createElement('button');restore.type='button';restore.className='btn secondary';restore.textContent='↩ Recuperar nota y dibujo';
-  restore.onclick=()=>{if(!confirm('¿Recuperar esta nota? Sustituirá las notas y el dibujo actuales.'))return;try{const now=record();const rest=(now.notasPapelera||[]).filter(v=>v.id!==n.id);const previous=(now.notasLibres||now.croquis)?[{id:'n'+Date.now(),fecha:new Date().toISOString(),texto:now.notasLibres||'',croquis:now.croquis||null}]:[];updateClient({notasLibres:n.texto||'',croquis:n.croquis||null,notasPapelera:[...rest,...previous]});$('clientNotes').value=n.texto||'';showDrawing(n.croquis||null);trashNotesBtn.click();$('notesStatus').textContent='Nota recuperada.'}catch(e){alert(e.message)}};
+  restore.onclick=()=>{if(!confirm('¿Recuperar esta nota? Sustituirá las notas y el dibujo actuales.'))return;try{const now=record();const rest=(now.notasPapelera||[]).filter(v=>v.id!==n.id);const previous=(now.notasLibres||now.croquis)?[{id:'n'+Date.now(),fecha:new Date().toISOString(),texto:now.notasLibres||'',croquis:now.croquis||null}]:[];updateClient({notasLibres:n.texto||'',croquis:n.croquis||null,notasPapelera:[...rest,...previous]});$('clientNotes').value=n.texto||'';showDrawing(n.croquis||null);trashNotesList.hidden=true;trashNotesBtn.click();$('notesStatus').textContent='Nota recuperada.'}catch(e){alert(e.message)}};
   item.append(info,restore);trashNotesList.append(item)
  }
 };
