@@ -25,7 +25,7 @@ window.clercDeleteClient=async function(id){
  localStorage.setItem(backupKey,JSON.stringify(a));
  const d=deleted();d[String(id)]=new Date().toISOString();saveDeleted(d);
  try{
-  await req('/rest/v1/clerc_v18_sync?owner_id=eq.'+encodeURIComponent(user.id)+'&record_id=eq.'+encodeURIComponent(String(id)),{method:'DELETE',headers:{Prefer:'return=minimal'}});
+  await req('/rest/v1/clerc_v18_sync?owner_id=eq.'+encodeURIComponent(user.id)+'&record_id=eq.'+encodeURIComponent(String(id)),{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({payload:{id:String(id),_deleted:true},updated_at:new Date().toISOString()})}).then(rows=>{if(!Array.isArray(rows)||rows.length!==1)throw Error('No se confirmó el borrado en la nube.')});
   const p=pending();delete p[String(id)];savePending(p);
   localStorage.setItem(KEY,JSON.stringify(a.filter(x=>String(x.id)!==String(id))));
   render();renderPending();document.dispatchEvent(new Event('clerc-client-changed'));
@@ -54,8 +54,8 @@ async function sync(){
   status('Sincronizando…');
   const user=await req('/auth/v1/user');
   if(!user.id)throw Error('No se pudo identificar la cuenta');
-  const remote=await req('/rest/v1/clerc_v18_sync?select=record_id,payload&owner_id=eq.'+encodeURIComponent(user.id));
-  const tombstones=deleted();const remoteMap=new Map((remote||[]).filter(r=>r.payload?.id&&!tombstones[String(r.record_id)]).map(r=>[String(r.record_id),r.payload]));
+  const remote=await req('/rest/v1/clerc_v18_sync?select=record_id,payload,updated_at&owner_id=eq.'+encodeURIComponent(user.id));
+  const tombstones=deleted();for(const r of remote||[]){if(r.payload?._deleted)tombstones[String(r.record_id)]=r.updated_at||new Date().toISOString()}saveDeleted(tombstones);const remoteMap=new Map((remote||[]).filter(r=>r.payload?.id&&!r.payload?._deleted&&!tombstones[String(r.record_id)]).map(r=>[String(r.record_id),r.payload]));
   const local=load();
   const localMap=new Map(local.filter(x=>x?.id&&!tombstones[String(x.id)]).map(x=>[String(x.id),x]));
   const changes=pending();
