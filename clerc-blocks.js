@@ -3,7 +3,17 @@
 const KEY='clerc_crew_blocks_v1',panel=document.getElementById('blocksPanel'),button=document.getElementById('openBlocks');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const get=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return []}};
-const put=a=>{localStorage.setItem(KEY,JSON.stringify(a));document.dispatchEvent(new Event('clerc-blocks-changed'))};
+const PENDING='clerc_crew_blocks_pending_v1';
+const put=a=>{
+ const before=get(),previous=new Map(before.map(x=>[String(x.id),JSON.stringify(x)])),next=new Map(a.map(x=>[String(x.id),JSON.stringify(x)]));
+ const changes=(()=>{try{return JSON.parse(localStorage.getItem(PENDING)||'{}')}catch{return {}}})();
+ for(const [id,value] of next)if(previous.get(id)!==value)changes[id]=JSON.parse(value);
+ for(const id of previous.keys())if(!next.has(id))changes[id]=null;
+ localStorage.setItem(PENDING,JSON.stringify(changes));
+ localStorage.setItem(KEY,JSON.stringify(a));
+ document.dispatchEvent(new Event('clerc-blocks-changed'));
+ document.dispatchEvent(new Event('clerc-blocks-sync-request'));
+};
 window.clercBlocks=get;
 let month=new Date().toISOString().slice(0,7),selected='';
 const label=d=>d?d.split('-').reverse().join('/'):'';
