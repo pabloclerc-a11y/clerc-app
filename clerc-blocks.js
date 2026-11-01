@@ -48,4 +48,5 @@ function details(){const el=panel.querySelector('#blocksDetail');if(!selected){e
 function shift(n){const [y,m]=month.split('-').map(Number),d=new Date(y,m-1+n,1);month=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');draw()}
 button.addEventListener('click',()=>{panel.hidden=!panel.hidden;if(!panel.hidden)draw();else window.clercGeneralCalendar=false});
 document.addEventListener('clerc-blocks-changed',()=>{if(!panel.hidden)draw()});
+document.addEventListener('clerc-general-calendar-open',()=>{if(!panel.hidden)draw()});
 })();
