@@ -20,7 +20,8 @@ $('workSave').onclick=()=>{const d=selected,c=crew.value;if(!d||!c){alert('Eleg�
 $('extraSave').onclick=()=>{const a=$('extraStart').value,b=$('extraEnd').value,nota=$('extraNote').value.trim(),c=crew.value;if(!a||!b||a>b||!dates(a,b).length||!nota||!c){alert('Completá fechas laborables, descripción y cuadrilla.');return}const conflicts=clashes(a,b,c,x.id);if(conflicts.length&&!confirm('ATENCIÓN: la cuadrilla ya está ocupada en '+conflicts.slice(0,4).join('; ')+'. ¿Forzar el trabajo puntual?'))return;const t={id:'t'+Date.now(),inicio:a,fin:b,nota,cuadrilla:c};if(save({obraPuntuales:[...(x.obraPuntuales||[]),t]}))show(which)};
 const extras=x.obraPuntuales||[];$('extraList').innerHTML=extras.length?'<h4>Trabajos puntuales guardados</h4>'+extras.map(t=>'<p>'+esc(t.inicio)+' a '+esc(t.fin)+' · '+esc(t.nota)+' · '+esc(t.cuadrilla)+'</p>').join(''):''}
 paint()}
-function refreshCrew(){const x=client();crew.value=x?.obraCuadrilla||''}
+function formatDate(d){if(!d)return 'Sin fecha';const p=d.split('-');return p.length===3?p.reverse().join('/'):d}
+function refreshCrew(){const x=client();crew.value=x?.obraCuadrilla||'';const summary=$('workDatesText');if(summary)summary.textContent='Comienzo: '+formatDate(x?.obraInicio)+'  ·  Final: '+formatDate(x?.obraFin)}
 crew.addEventListener('change',()=>{const x=client();if(!x)return;if(x.resultadoPresupuesto!=='ACEPTADO'){alert('Guardá antes el presupuesto como ACEPTADO.');refreshCrew();return}const c=crew.value;if(c&&x.obraInicio&&x.obraFin&&clashes(x.obraInicio,x.obraFin,c,x.id).length){alert('Esa cuadrilla tiene fechas ocupadas. No se ha cambiado.');refreshCrew();return}save({obraCuadrilla:c})});
 
 function client(){return editId?load().find(x=>x.id===editId):null}
