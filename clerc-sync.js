@@ -45,6 +45,36 @@ store=function(records){
  oldStore(records);
  if(auth)sync();
 };
+const blockKey='clerc_crew_blocks_v1',blockPending='clerc_crew_blocks_pending_v1',blockPrefix='crewblock:';
+function readJson(key,fallback){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback))}catch{return fallback}}
+async function syncBlocks(user,remote){
+ const local=readJson(blockKey,[]),changes=readJson(blockPending,{});
+ const cloud=new Map((remote||[]).filter(r=>String(r.record_id).startsWith(blockPrefix)).map(r=>[String(r.record_id).slice(blockPrefix.length),r.payload]));
+ const merged=new Map([...cloud].filter(([,p])=>p&&!p._deleted&&p.block).map(([id,p])=>[id,p.block]));
+ const writes=[];
+ for(const [id,change] of Object.entries(changes)){
+  if(change===null){merged.delete(id);writes.push({owner_id:user.id,record_id:blockPrefix+id,payload:{_deleted:true},updated_at:new Date().toISOString()})}
+  else{merged.set(id,change);writes.push({owner_id:user.id,record_id:blockPrefix+id,payload:{block:change},updated_at:new Date().toISOString()})}
+ }
+ for(const b of local)if(b?.id&&!cloud.has(String(b.id))&&!Object.prototype.hasOwnProperty.call(changes,String(b.id))){
+  merged.set(String(b.id),b);
+  writes.push({owner_id:user.id,record_id:blockPrefix+b.id,payload:{block:b},updated_at:new Date().toISOString()});
+ }
+ if(writes.length){
+  await req('/rest/v1/clerc_v18_sync?on_conflict=owner_id,record_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(writes)});
+  const latest=readJson(blockPending,{});
+  for(const [id,change] of Object.entries(changes))if(JSON.stringify(latest[id])===JSON.stringify(change))delete latest[id];
+  localStorage.setItem(blockPending,JSON.stringify(latest));
+ }
+ for(const [id,change] of Object.entries(readJson(blockPending,{})))if(change===null)merged.delete(id);else merged.set(id,change);
+ const result=[...merged.values()];
+ if(JSON.stringify(result)!==JSON.stringify(local)){
+  localStorage.setItem('clerc_blocks_backup_'+new Date().toISOString().slice(0,10),JSON.stringify(local));
+  localStorage.setItem(blockKey,JSON.stringify(result));
+  document.dispatchEvent(new Event('clerc-blocks-changed'));
+ }
+ return result.length;
+}
 async function sync(){
  if(!auth)return;
  if(busy){queued=true;return}
@@ -55,7 +85,8 @@ async function sync(){
   const user=await req('/auth/v1/user');
   if(!user.id)throw Error('No se pudo identificar la cuenta');
   const remote=await req('/rest/v1/clerc_v18_sync?select=record_id,payload,updated_at&owner_id=eq.'+encodeURIComponent(user.id));
-  const tombstones=deleted();for(const r of remote||[]){if(r.payload?._deleted)tombstones[String(r.record_id)]=r.updated_at||new Date().toISOString()}saveDeleted(tombstones);const remoteMap=new Map((remote||[]).filter(r=>r.payload?.id&&!r.payload?._deleted&&!tombstones[String(r.record_id)]).map(r=>[String(r.record_id),r.payload]));
+  const blockCount=await syncBlocks(user,remote);
+  const tombstones=deleted();for(const r of (remote||[]).filter(r=>!String(r.record_id).startsWith(blockPrefix))){if(r.payload?._deleted)tombstones[String(r.record_id)]=r.updated_at||new Date().toISOString()}saveDeleted(tombstones);const remoteMap=new Map((remote||[]).filter(r=>!String(r.record_id).startsWith(blockPrefix)&&r.payload?.id&&!r.payload?._deleted&&!tombstones[String(r.record_id)]).map(r=>[String(r.record_id),r.payload]));
   const local=load();
   const localMap=new Map(local.filter(x=>x?.id&&!tombstones[String(x.id)]).map(x=>[String(x.id),x]));
   const changes=pending();
@@ -80,7 +111,7 @@ async function sync(){
    localStorage.setItem(KEY,JSON.stringify(result));
    render();renderPending();
   }
-  status('Sincronizados '+result.length+' clientes.');
+  status('Sincronizados '+result.length+' clientes y '+blockCount+' bloqueos.');
  }catch(e){status('No se pudo sincronizar: '+e.message)}
  finally{busy=false;if(queued){queued=false;sync()}}
 }
@@ -91,5 +122,6 @@ $('cloudChangePass').onclick=async()=>{try{let password=$('cloudNewPass').value;
 $('cloudSync').onclick=sync;$('cloudLogout').onclick=()=>{auth=null;localStorage.removeItem(sessionKey);display();status('Sesión cerrada. Tus datos locales se conservan.')};
 try{auth=JSON.parse(localStorage.getItem(sessionKey)||'null')}catch{}
 let hash=new URLSearchParams(location.hash.slice(1));if(hash.get('type')==='recovery'&&hash.get('access_token')){setAuth({access_token:hash.get('access_token'),refresh_token:hash.get('refresh_token'),expires_at:Math.floor(Date.now()/1000)+3600});$('cloudReset').hidden=false;history.replaceState(null,'',location.pathname)}
-display();if(auth)sync();window.addEventListener('focus',()=>{if(auth)sync()});
+display();if(auth)sync();document.addEventListener('clerc-blocks-sync-request',()=>{if(auth)sync()});
+window.addEventListener('focus',()=>{if(auth)sync()});
 })();
