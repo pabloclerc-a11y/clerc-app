@@ -1,6 +1,7 @@
 (function(){
 'use strict';
 const $=id=>document.getElementById(id),panel=$('workContent'),status=$('workStatus');
+window.clercWorksLoaded=true;
 const money=n=>Number(n||0).toLocaleString('es-ES',{style:'currency',currency:'EUR'});
 const val=n=>Math.round((Number(n)||0)*100)/100;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -48,6 +49,6 @@ panel.querySelectorAll('.workDelete').forEach(b=>b.onclick=()=>{if(!confirm('¿Q
 }
 document.addEventListener('click',e=>{const b=e.target.closest('.workButton');if(!b)return;e.preventDefault();update();try{show(b.dataset.work)}catch(err){console.error('CLERC calendario:',err);panel.hidden=false;panel.innerHTML='<p>No se pudo abrir el calendario. Actualizá la página y volvé a intentarlo.</p>';status.textContent='Error al abrir: '+err.message}});
 document.querySelectorAll('input[name="resultadoPresupuesto"]').forEach(r=>r.addEventListener('change',update));
-document.addEventListener('clerc-client-changed',()=>{refreshCrew();update();panel.hidden=true;section=''});
-refreshCrew();update();
+document.addEventListener('clerc-client-changed',()=>{try{refreshCrew();update()}catch(err){console.error('CLERC actualizar obra:',err)}panel.hidden=true;section=''});
+try{refreshCrew();update()}catch(err){console.error('CLERC iniciar obra:',err);status.textContent='Aviso al iniciar obras: '+err.message}
 })();
