@@ -25,7 +25,7 @@ function refreshCrew(){const x=client();crew.value=x?.obraCuadrilla||'';const su
 crew.addEventListener('change',()=>{const x=client();if(!x)return;if(x.resultadoPresupuesto!=='ACEPTADO'){alert('Guardá antes el presupuesto como ACEPTADO.');refreshCrew();return}const c=crew.value;if(c&&x.obraInicio&&x.obraFin&&clashes(x.obraInicio,x.obraFin,c,x.id).length){alert('Esa cuadrilla tiene fechas ocupadas. No se ha cambiado.');refreshCrew();return}save({obraCuadrilla:c})});
 
 function client(){return editId?load().find(x=>x.id===editId):null}
-function accepted(){return document.querySelector('input[name="resultadoPresupuesto"]:checked')?.value==='ACEPTADO'}
+function accepted(){return document.querySelector('input[name="resultadoPresupuesto"]:checked')?.value==='ACEPTADO'||client()?.resultadoPresupuesto==='ACEPTADO'}
 function update(){const ok=accepted();document.querySelectorAll('.workButton').forEach(b=>{b.disabled=false;b.setAttribute('aria-disabled',String(!ok))});$('workLockNote').textContent=ok?'Elegí una opción para gestionar la obra.':'Solo disponible cuando el presupuesto esté ACEPTADO.';if(!ok){panel.hidden=true;section=''}}
 function save(patch){const x=client();if(!x){alert('Primero guardá la ficha del cliente.');return false}if(x.resultadoPresupuesto!=='ACEPTADO'){alert('Guardá primero el presupuesto como ACEPTADO.');return false}const a=load(),i=a.findIndex(z=>z.id===x.id);a[i]={...a[i],...patch,actualizado:new Date().toISOString()};store(a);render();document.dispatchEvent(new Event('clerc-client-changed'));status.textContent='Datos de la obra guardados.';return true}
 function input(label,type,id,value=''){return '<label style="display:block;margin:10px 0">'+label+'<input id="'+id+'" type="'+type+'" value="'+esc(value)+'" style="display:block;width:100%;padding:10px;margin-top:5px;border:1px solid #b9c8db;border-radius:7px"></label>'}
@@ -46,7 +46,7 @@ $('workConcept').dispatchEvent(new Event('change'));
 $('workAdd').onclick=()=>{const p=getPay();if(!p)return;const n=val($('workAmount').value),concepto=$('workConcept').value==='__new'?$('workNewConcept').value.trim():$('workConcept').value;if(!concepto||n<=0||!$('workDate').value){alert('Completá fecha, concepto e importe positivo.');return}const signo=Number($('workSign').value),m={id:'m'+Date.now()+Math.random().toString(36).slice(2),fecha:$('workDate').value,concepto,importe:n,signo,...p};const names=x.obraConceptos||[];if(save({obraMovimientos:[...a,m],obraConceptos:concepto&&!concepts.includes(concepto)?[...names,concepto]:names}))show('account')};
 panel.querySelectorAll('.workDelete').forEach(b=>b.onclick=()=>{if(!confirm('¿Quitar este movimiento de la cuenta?'))return;if(save({obraMovimientos:a.filter(m=>m.id!==b.dataset.id)}))show('account')});
 }
-document.querySelectorAll('.workButton').forEach(b=>b.addEventListener('click',()=>{update();show(b.dataset.work)}));
+document.addEventListener('click',e=>{const b=e.target.closest('.workButton');if(!b)return;e.preventDefault();update();try{show(b.dataset.work)}catch(err){console.error('CLERC calendario:',err);panel.hidden=false;panel.innerHTML='<p>No se pudo abrir el calendario. Actualizá la página y volvé a intentarlo.</p>';status.textContent='Error al abrir: '+err.message}});
 document.querySelectorAll('input[name="resultadoPresupuesto"]').forEach(r=>r.addEventListener('change',update));
 document.addEventListener('clerc-client-changed',()=>{refreshCrew();update();panel.hidden=true;section=''});
 refreshCrew();update();
