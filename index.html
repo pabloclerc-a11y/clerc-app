@@ -319,7 +319,10 @@ document.addEventListener('click',e=>{const b=e.target.closest('.workButton');if
 document.querySelectorAll('input[name="resultadoPresupuesto"]').forEach(r=>r.addEventListener('change',update));
 document.addEventListener('clerc-client-changed',()=>{try{refreshCrew();update()}catch(err){console.error('CLERC actualizar obra:',err)}panel.hidden=true;section=''});
 try{refreshCrew();update()}catch(err){console.error('CLERC iniciar obra:',err);status.textContent='Aviso al iniciar obras: '+err.message}
-})();</script><script src="./clerc-blocks.js?v=visitas-violeta-20261106-2" defer></script><script>
+})();</script><style id="clercVisitVisibleFix">
+button.overviewDay[data-visit-label],button.blocksDay[data-visit-label]{position:relative!important;outline:4px solid #7c3aed!important;outline-offset:-4px!important}
+button.overviewDay[data-visit-label]::after,button.blocksDay[data-visit-label]::after{content:attr(data-visit-label)!important;display:block!important;position:relative!important;z-index:5!important;background:#7c3aed!important;color:#fff!important;font-size:10px!important;font-weight:900!important;line-height:1.25!important;padding:3px 2px!important;border-radius:3px!important;margin-top:3px!important;white-space:normal!important;overflow-wrap:anywhere!important}
+</style><script src="./clerc-blocks.js?v=visitas-violeta-20261106-3" defer></script><script>
 (function(){
  const key='clerc_nueva_llamada_v18_20261015';
  const panel=document.getElementById('blocksPanel');
@@ -330,6 +333,8 @@ try{refreshCrew();update()}catch(err){console.error('CLERC iniciar obra:',err);s
   for(const x of clients){if(!/^\d{4}-\d{2}-\d{2}$/.test(x.fechaVisita||''))continue;const arr=byDate.get(x.fechaVisita)||[];arr.push([x.nombre,x.apellidos].filter(Boolean).join(' ')||'Cliente');byDate.set(x.fechaVisita,arr)}
   panel.querySelectorAll('button.overviewDay[data-day],button.blocksDay[data-day]').forEach(b=>{
    const names=byDate.get(b.dataset.day)||[];
+   const title=names.length?'🟣 VISITA · '+names.join(' · '):'';
+   if((b.dataset.visitLabel||'')!==title){if(title)b.dataset.visitLabel=title;else delete b.dataset.visitLabel}
    const existing=b.querySelector('.clercVisitMarker');
    if(!names.length){if(existing)existing.remove();return}
    b.style.setProperty('outline','4px solid #7c3aed','important');
