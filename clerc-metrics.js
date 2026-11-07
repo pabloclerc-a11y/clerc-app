@@ -1,8 +1,8 @@
 (function(){
 'use strict';
 const host=document.getElementById('clercMetricsOrigin');if(!host)return;
-const colors=['#2563eb','#16a34a','#f59e0b','#a855f7','#0891b2','#ef4444','#64748b'];
-const names=['Google','Boca a boca','Cliente anterior','Redes sociales','RECOMENDADO','Otros','Sin especificar'];
+const colors=['#2563eb','#16a34a','#f59e0b','#a855f7','#ef4444','#64748b'];
+const names=['Google','Boca a boca','Cliente anterior','Redes sociales','Otros','Sin especificar'];
 const pad=n=>String(n).padStart(2,'0');
 const localDate=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 const today=new Date(),year=today.getFullYear();
@@ -31,7 +31,7 @@ const [from,to]=dates();if(!from||!to||from>to){result.textContent='Revisá las 
 let records=[];try{records=JSON.parse(localStorage.getItem('clerc_nueva_llamada_v18_20261015')||'[]')}catch{}
 if(!Array.isArray(records))records=[];
 const counts=names.map(()=>0);
-for(const x of records){if(!x||!x.creado)continue;const d=String(x.creado).slice(0,10);if(d<from||d>to)continue;let idx=names.indexOf(String(x.origen||'').trim());if(idx<0)idx=x.origen?5:6;counts[idx]++}
+for(const x of records){if(!x||!x.creado)continue;const d=String(x.creado).slice(0,10);if(d<from||d>to)continue;let idx=names.indexOf(String(x.origen||'').trim());if(idx<0)idx=x.origen?4:5;counts[idx]++}
 const outcomes=['ACEPTADO','RECHAZADO','NO SABE NO CONTESTA','SIN DEFINIR'];
 const outcomeColors=['#16a34a','#dc2626','#7c3aed','#f59e0b'];
 const outcomeCounts=[0,0,0,0];
