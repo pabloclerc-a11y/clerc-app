@@ -140,7 +140,7 @@ for(const name of ['estado','resultadoPresupuesto']){
   showSelectionDates();
  }));
 }
-function updateVisitSchedule(){const box=document.getElementById('visitSchedule');const selected=form.querySelector('input[name="estado"]:checked');box.hidden=!!selected&&selected.value!=='LLAMAR'&&!form.elements.fechaVisita.value&&!form.elements.horaVisita.value}
+function updateVisitSchedule(){const box=document.getElementById('visitSchedule');const selected=form.querySelector('input[name="estado"]:checked');box.hidden=false}
 form.querySelectorAll('input[name="estado"]').forEach(r=>r.addEventListener('change',updateVisitSchedule));
 form.elements.fechaVisita.addEventListener('change',updateVisitSchedule);
 form.elements.horaVisita.addEventListener('change',updateVisitSchedule);
