@@ -121,8 +121,55 @@ trashPhotosBtn.onclick=async()=>{
   trashPhotosList.append(tile)
  }
 };
-async function handlePhotoChange(e){const x=requireRecord();if(!x)return;const a=session();if(!a?.user?.id){$('photosStatus').textContent='Iniciá sesión en la nube primero.';return}for(const file of e.target.files){if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>10*1024*1024){$('photosStatus').textContent='Usá JPG, PNG o WEBP de hasta 10 MB.';continue}const name=a.user.id+'/'+x.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+file.type.split('/')[1];try{$('photosStatus').textContent='Guardando foto…';await api('/storage/v1/object/'+bucket+'/'+name,{method:'POST',headers:{'Content-Type':file.type,'x-upsert':'false'},body:file});$('photosStatus').textContent='Foto guardada en la nube.'}catch(err){$('photosStatus').textContent='Error al guardar: '+err.message}}e.target.value='';await listPhotos(x)}
+let pendingPhotos=[],pendingClientId=null,uploadingPhotos=false;
+const pendingList=$('pendingClientPhotos'),saveAll=$('saveAllClientPhotos'),discardAll=$('discardClientPhotos');
+function drawPendingPhotos(){
+ pendingList.replaceChildren();
+ saveAll.disabled=!pendingPhotos.length||uploadingPhotos;discardAll.disabled=!pendingPhotos.length||uploadingPhotos;
+ saveAll.textContent=uploadingPhotos?'Guardando fotos…':'💾 Guardar todas las fotos ('+pendingPhotos.length+')';
+ pendingPhotos.forEach((file,i)=>{
+  const item=document.createElement('div');item.style='display:flex;align-items:center;gap:6px;background:#edf4fc;border:1px solid #c6d8ec;border-radius:8px;padding:7px';
+  const label=document.createElement('span');label.textContent='📷 Foto '+(i+1);
+  const remove=document.createElement('button');remove.type='button';remove.className='btn secondary';remove.textContent='×';remove.style='padding:3px 9px';
+  remove.disabled=uploadingPhotos;remove.onclick=()=>{pendingPhotos.splice(i,1);drawPendingPhotos()};
+  item.append(label,remove);pendingList.append(item)
+ });
+}
+function handlePhotoChange(e){
+ const x=requireRecord();if(!x)return;
+ if(uploadingPhotos)return;
+ if(pendingClientId&&pendingClientId!==x.id){pendingPhotos=[]}
+ pendingClientId=x.id;
+ let added=0,invalid=0;
+ for(const file of Array.from(e.target.files||[])){
+  if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>10*1024*1024){invalid++;continue}
+  pendingPhotos.push(file);added++;
+ }
+ e.target.value='';drawPendingPhotos();
+ $('photosStatus').textContent=(added?pendingPhotos.length+' foto(s) preparadas. Podés seguir sacando fotos o pulsar Guardar todas las fotos.':'')+(invalid?' '+invalid+' archivo(s) no admitidos (JPG, PNG o WEBP, máximo 10 MB).':'');
+}
+discardAll.onclick=()=>{if(uploadingPhotos)return;pendingPhotos=[];pendingClientId=null;drawPendingPhotos();$('photosStatus').textContent='Fotos pendientes descartadas. Las fotos guardadas no se modificaron.'};
+saveAll.onclick=async()=>{
+ if(uploadingPhotos||!pendingPhotos.length)return;
+ const x=requireRecord();if(!x)return;
+ if(x.id!==pendingClientId){$('photosStatus').textContent='Abrí el cliente al que pertenecen estas fotos antes de guardarlas.';return}
+ const a=session();if(!a?.user?.id){$('photosStatus').textContent='Iniciá sesión en la nube primero.';return}
+ uploadingPhotos=true;drawPendingPhotos();
+ const total=pendingPhotos.length;let saved=0;
+ for(const file of [...pendingPhotos]){
+  const name=a.user.id+'/'+x.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+file.type.split('/')[1];
+  try{
+   $('photosStatus').textContent='Guardando '+(saved+1)+' de '+total+' fotos…';
+   await api('/storage/v1/object/'+bucket+'/'+name,{method:'POST',headers:{'Content-Type':file.type,'x-upsert':'false'},body:file});
+   pendingPhotos.shift();saved++
+  }catch(err){$('photosStatus').textContent='Se guardaron '+saved+' fotos. Quedan '+pendingPhotos.length+' pendientes. Error: '+err.message;break}
+ }
+ uploadingPhotos=false;drawPendingPhotos();
+ if(!pendingPhotos.length){pendingClientId=null;$('photosStatus').textContent='Se guardaron las '+saved+' fotos en la nube.'}
+ if(saved)await listPhotos(x);
+ if(pendingPhotos.length)$('photosStatus').textContent='Se guardaron '+saved+' fotos. Quedan '+pendingPhotos.length+' pendientes para volver a intentar.';
+};
 $('clientPhotoInput').addEventListener('change',handlePhotoChange);
 $('clientPhotoCamera').addEventListener('change',handlePhotoChange);
-document.addEventListener('clerc-client-changed',()=>{current=null;refresh();$('notesStatus').textContent='';$('photosStatus').textContent=''});
+document.addEventListener('clerc-client-changed',()=>{const next=record()?.id||null;if(pendingClientId&&next&&pendingClientId!==next&&!uploadingPhotos){pendingPhotos=[];pendingClientId=null;drawPendingPhotos()}current=null;refresh();$('notesStatus').textContent='';if(!pendingPhotos.length)$('photosStatus').textContent=''});
 })();
