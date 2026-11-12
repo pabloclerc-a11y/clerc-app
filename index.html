@@ -333,16 +333,49 @@ function printClientReceipt(x,m){
   copy.querySelector('body>div:first-child')?.remove();
   return '<!doctype html>'+copy.outerHTML
  }
- const bar=win.document.createElement('div');bar.style='display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:12px;background:#edf3f9;border-radius:8px;margin-bottom:20px';
- const message='CLERC PINTURAS Y REFORMAS ALICANTE\\nRECIBO DE PAGO n.º '+number+'\\nFecha: '+date+'\\nCliente: '+customer+'\\nDirección de obra: '+address+'\\nImporte recibido: '+amount+'\\nConcepto: '+detail+'\\nForma de pago: '+pay;
- function action(label,fn){const b=win.document.createElement('button');b.textContent=label;b.type='button';b.style='padding:12px;border:0;border-radius:7px;background:#164b86;color:white;font-weight:bold;cursor:pointer';b.onclick=fn;bar.append(b)}
- action('⬅ Volver a la ficha',()=>{if(win.opener&&!win.opener.closed){win.opener.focus();win.close();if(!win.closed)win.location.href=win.opener.location.href}else{win.close();if(!win.closed)win.location.href=new URL('./',location.href).href}});
+
+ const bar=win.document.createElement('div');bar.id='receiptActions';bar.style='position:sticky;top:0;z-index:20;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:12px;background:#edf3f9;border:1px solid #d2dfed;border-radius:8px;margin-bottom:20px';
+ const status=win.document.createElement('p');status.id='receiptStatus';status.style='font-size:13px;text-align:center;color:#294867;margin:8px 0';
+ const fileName='Recibo_CLERC_'+number+'.pdf';
+ function action(label,fn){const b=win.document.createElement('button');b.textContent=label;b.type='button';b.style='padding:12px;border:0;border-radius:7px;background:#164b86;color:white;font-weight:bold;cursor:pointer';b.onclick=fn;bar.append(b);return b}
+ function back(){try{if(win.opener&&!win.opener.closed)win.opener.focus();win.close();if(!win.closed){win.location.replace(new URL('./',location.href).href)}}catch{win.location.replace(new URL('./',location.href).href)}}
+ function loadPdfLibrary(){return new Promise((resolve,reject)=>{if(win.jspdf?.jsPDF){resolve(win.jspdf.jsPDF);return}const script=win.document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js';script.onload=()=>win.jspdf?.jsPDF?resolve(win.jspdf.jsPDF):reject(Error('No se cargó el generador PDF'));script.onerror=()=>reject(Error('No hay conexión para generar el PDF'));win.document.head.append(script)})}
+ async function receiptPdf(){
+  const JsPDF=await loadPdfLibrary(),pdf=new JsPDF({orientation:'portrait',unit:'mm',format:'a4'});const margin=20,maxWidth=170;
+  let y=22;pdf.setTextColor(24,44,72);
+  try{const logo=win.document.querySelector('header img');if(logo?.complete&&logo.naturalWidth){const cv=win.document.createElement('canvas');cv.width=logo.naturalWidth;cv.height=logo.naturalHeight;cv.getContext('2d').drawImage(logo,0,0);const data=cv.toDataURL('image/jpeg',.88);const h=Math.min(29,65*cv.height/cv.width);pdf.addImage(data,'JPEG',72,y,65,h);y+=h+7}}catch(e){/* Logo no disponible; mantener recibo legible */}
+  pdf.setFont('helvetica','bold');pdf.setFontSize(14);pdf.text('CLERC PINTURAS Y REFORMAS ALICANTE',105,y,{align:'center'});y+=8;
+  pdf.setFont('helvetica','normal');pdf.setFontSize(10);pdf.text('Tel. 651 645 718',105,y,{align:'center'});y+=11;
+  pdf.setDrawColor(35,75,120);pdf.line(margin,y,190,y);y+=13;
+  pdf.setFont('helvetica','bold');pdf.setFontSize(18);pdf.text('RECIBO DE PAGO',105,y,{align:'center'});y+=14;
+  function line(label,value){pdf.setFont('helvetica','bold');pdf.setFontSize(11);pdf.text(label,margin,y);pdf.setFont('helvetica','normal');const lines=pdf.splitTextToSize(String(value||'—'),maxWidth-42);pdf.text(lines,margin+42,y);y+=Math.max(8,lines.length*6+3)}
+  line('Recibo n.º:',number);line('Fecha:',date);line('Cliente:',customer);line('Dirección:',address);y+=8;
+  pdf.setFont('helvetica','normal');pdf.setFontSize(11);pdf.text('He recibido del cliente indicado la cantidad de:',margin,y);y+=10;
+  pdf.setDrawColor(175,193,212);pdf.rect(margin,y-6,maxWidth,18);pdf.setFont('helvetica','bold');pdf.setFontSize(19);pdf.text(amount,105,y+6,{align:'center'});y+=28;
+  line('Concepto:',detail);line('Movimiento:',m.concepto||'Pago');line('Forma de pago:',pay);
+  y=Math.max(y+14,213);if(y>248){pdf.addPage();y=30}
+  pdf.setFont('helvetica','bold');pdf.setFontSize(10);
+  for(const [id,label,xPos] of [['signClerc','Firma de CLERC',20],['signCustomer','Firma del cliente',110]]){
+   pdf.text(label,xPos,y);const c=win.document.getElementById(id);
+   pdf.setDrawColor(170,184,201);pdf.rect(xPos,y+4,80,34);
+   pdf.addImage(c.toDataURL('image/png'),'PNG',xPos+2,y+5,76,31)
+  }
+  return pdf.output('blob')
+ }
+ async function getPdf(){status.textContent='Preparando PDF…';try{const blob=await receiptPdf();status.textContent='PDF preparado correctamente.';return blob}catch(e){status.textContent='No se pudo generar el PDF: '+e.message+'. Podés usar Imprimir / guardar PDF.';throw e}}
+ function downloadBlob(blob){const url=win.URL.createObjectURL(blob);const a=win.document.createElement('a');a.href=url;a.download=fileName;win.document.body.append(a);a.click();a.remove();win.setTimeout(()=>win.URL.revokeObjectURL(url),60000)}
+ action('⬅ Volver a la ficha',back);
+ action('💾 Guardar PDF',async()=>{try{downloadBlob(await getPdf());status.textContent='PDF descargado. Podés volver a la ficha.'}catch(e){}});
+ action('📤 Enviar PDF (WhatsApp / correo)',async()=>{
+  try{const blob=await getPdf(),file=new File([blob],fileName,{type:'application/pdf'});
+   if(win.navigator.canShare?.({files:[file]})&&win.navigator.share){await win.navigator.share({files:[file],title:'Recibo CLERC '+number});status.textContent='Elegí WhatsApp, correo u otra aplicación para enviar el PDF.'}
+   else{downloadBlob(blob);status.textContent='PDF descargado. Adjuntalo desde Descargas en WhatsApp o correo.';win.alert('Este navegador no permite adjuntar directamente el PDF. Ya lo descargamos: abrí WhatsApp o tu correo y adjuntá '+fileName)}
+  }catch(e){if(e.name!=='AbortError')status.textContent='No se pudo compartir el PDF: '+e.message}
+ });
  action('🖨️ Imprimir / guardar PDF',()=>win.print());
- action('🟢 WhatsApp',()=>{win.open('https://wa.me/?text='+encodeURIComponent(message),'_blank')});
- action('✉️ Correo',()=>{win.location.href='mailto:?subject='+encodeURIComponent('Recibo CLERC n.º '+number)+'&body='+encodeURIComponent(message)});
- action('📤 Compartir archivo',async()=>{const file=new File([signedReceiptHtml()], 'Recibo_CLERC_'+number+'.html',{type:'text/html'});try{if(navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:'Recibo CLERC '+number});return}alert('Tu dispositivo no permite compartir el archivo directamente. Usá Imprimir / guardar PDF y adjuntá el PDF en WhatsApp o correo.')}catch(e){if(e.name!=='AbortError')alert('No se pudo compartir: '+e.message)}});
- win.document.body.prepend(bar);
- const style=win.document.createElement('style');style.textContent='@media print{body>div:first-child{display:none!important}.sign-clear{display:none!important}}';win.document.head.append(style)
+ win.document.body.prepend(status);win.document.body.prepend(bar);
+ const style=win.document.createElement('style');style.textContent='@media print{#receiptActions,#receiptStatus,.sign-clear{display:none!important}}';win.document.head.append(style);
+
 }
 function show(which){section=which;status.textContent='';if(!accepted()){update();status.textContent='Primero seleccioná ACEPTADO en Resultado del presupuesto.';return}panel.hidden=false;const x=client();if(!x){panel.innerHTML='<p>Primero guardá la ficha del cliente con presupuesto ACEPTADO.</p>';return}
 if(which==='start'||which==='end'){dateView(which,x);return}
