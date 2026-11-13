@@ -339,7 +339,24 @@ function printClientReceipt(x,m){
  const fileName='Recibo_CLERC_'+number+'.pdf';
  function action(label,fn){const b=win.document.createElement('button');b.textContent=label;b.type='button';b.style='padding:12px;border:0;border-radius:7px;background:#164b86;color:white;font-weight:bold;cursor:pointer';b.onclick=fn;bar.append(b);return b}
  function back(){try{if(win.opener&&!win.opener.closed)win.opener.focus();win.close();if(!win.closed){win.location.replace(new URL('./',location.href).href)}}catch{win.location.replace(new URL('./',location.href).href)}}
- function loadPdfLibrary(){return new Promise((resolve,reject)=>{if(win.jspdf?.jsPDF){resolve(win.jspdf.jsPDF);return}const script=win.document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js';script.onload=()=>win.jspdf?.jsPDF?resolve(win.jspdf.jsPDF):reject(Error('No se cargó el generador PDF'));script.onerror=()=>reject(Error('No hay conexión para generar el PDF'));win.document.head.append(script)})}
+ function loadPdfLibrary(){
+  return new Promise((resolve,reject)=>{
+   if(win.jspdf?.jsPDF){resolve(win.jspdf.jsPDF);return}
+   const sources=[
+    new URL('./jspdf.umd.min.js',location.href).href,
+    'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js',
+    'https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js'
+   ];
+   let i=0;
+   function next(){
+    if(win.jspdf?.jsPDF){resolve(win.jspdf.jsPDF);return}
+    if(i>=sources.length){reject(Error('No se pudo cargar el generador PDF. Revisá la conexión a Internet.'));return}
+    const script=win.document.createElement('script');script.src=sources[i++];script.onload=()=>win.jspdf?.jsPDF?resolve(win.jspdf.jsPDF):next();script.onerror=next;win.document.head.append(script)
+   }
+   next()
+  })
+ }
  async function receiptPdf(){
   const JsPDF=await loadPdfLibrary(),pdf=new JsPDF({orientation:'portrait',unit:'mm',format:'a4'});const margin=20,maxWidth=170;
   let y=22;pdf.setTextColor(24,44,72);
