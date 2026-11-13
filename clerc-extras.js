@@ -77,6 +77,15 @@ document.addEventListener('clerc-client-changed',()=>{a4Wrap.hidden=true;setTime
 a4Render();
 function session(){try{return JSON.parse(localStorage.getItem('clerc_cloud_session_v1')||'null')}catch{return null}}
 async function api(path,options={}){const a=session();if(!a?.access_token)throw Error('Entrá en tu cuenta de sincronización primero.');const h={apikey:pub,Authorization:'Bearer '+a.access_token,...options.headers};const r=await fetch(base+path,{...options,headers:h});if(!r.ok){let t=await r.text();throw Error('Error '+r.status+': '+t.slice(0,140))}return r}
+window.clercSaveReceiptPdf=async function(clientId,receiptId,blob){
+ const x=load().find(c=>String(c.id)===String(clientId));if(!x)throw Error('No se encontró el cliente');
+ const a=session();if(!a?.user?.id)throw Error('Iniciá sesión en la nube para guardar el recibo.');
+ const safe=String(receiptId).replace(/[^a-zA-Z0-9_-]/g,'').slice(0,50);
+ const path=a.user.id+'/'+x.id+'/Recibo_CLERC_'+safe+'.pdf';
+ await api('/storage/v1/object/'+bucket+'/'+path,{method:'POST',headers:{'Content-Type':'application/pdf','x-upsert':'true'},body:blob});
+ if(record()?.id===x.id&&!photos.hidden)await listPhotos(x);
+ return path
+};
 async function listPhotos(x){
  const list=$('clientPhotoList');list.replaceChildren();$('photosStatus').textContent='Cargando fotos…';
  try{
@@ -92,6 +101,10 @@ async function listPhotos(x){
    const signed=await api('/storage/v1/object/sign/'+bucket+'/'+encodeURIComponent(path).replaceAll('%2F','/'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({expiresIn:3600})});
    const d=await signed.json();
    const tile=document.createElement('div');tile.style='display:flex;flex-direction:column;gap:6px;align-items:center';
+   if(/\\.pdf$/i.test(f.name)){
+    const pdfLink=document.createElement('a');pdfLink.href=base+'/storage/v1'+d.signedURL;pdfLink.target='_blank';pdfLink.rel='noopener';pdfLink.textContent='📄 '+f.name;pdfLink.style='max-width:220px;overflow-wrap:anywhere;font-weight:700;padding:12px;border:1px solid #c8d7e8;border-radius:8px;background:#f2f6fc';tile.append(pdfLink);
+    const savePdf=document.createElement('button');savePdf.type='button';savePdf.className='btn secondary';savePdf.textContent='⬇ Descargar PDF';savePdf.onclick=async()=>{try{const r=await fetch(pdfLink.href);if(!r.ok)throw Error('No se pudo descargar');const url=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=url;a.download=f.name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)}catch(e){$('photosStatus').textContent=e.message}};tile.append(savePdf);list.append(tile);shown++;continue
+   }
    const img=document.createElement('img');img.src=base+'/storage/v1'+d.signedURL;img.alt='Foto del cliente';img.style='width:130px;height:130px;object-fit:cover;border-radius:8px;cursor:pointer';img.onclick=()=>window.open(img.src,'_blank');
    const remove=document.createElement('button');remove.type='button';remove.className='btn secondary';remove.style='padding:8px;color:#a21c22';remove.textContent='🗑️ Quitar foto';
    remove.onclick=async()=>{
