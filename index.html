@@ -270,7 +270,7 @@ document.getElementById('importFile').addEventListener('change',async e=>{
  finally{input.value=''}
 });
 
-</script><script>if("serviceWorker" in navigator && location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}</script><script src="./clerc-sync.js" defer></script><script src="./clerc-extras.js?v=fotos-lote-20261110" defer></script><script>(function(){
+</script><script>if("serviceWorker" in navigator && location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}</script><script src="./clerc-sync.js" defer></script><script src="./clerc-extras.js?v=recibos-archivo-20261113" defer></script><script>(function(){
 'use strict';
 const $=id=>document.getElementById(id),panel=$('workContent'),status=$('workStatus');
 window.clercWorksLoaded=true;
@@ -363,11 +363,16 @@ function printClientReceipt(x,m){
   return pdf.output('blob')
  }
  async function getPdf(){status.textContent='Preparando PDF…';try{const blob=await receiptPdf();status.textContent='PDF preparado correctamente.';return blob}catch(e){status.textContent='No se pudo generar el PDF: '+e.message+'. Podés usar Imprimir / guardar PDF.';throw e}}
+ async function saveToClient(blob){
+  if(typeof window.clercSaveReceiptPdf!=='function')throw Error('Actualizá la aplicación para activar el archivo de recibos.');
+  await window.clercSaveReceiptPdf(x.id,m.id,blob)
+ }
  function downloadBlob(blob){const url=win.URL.createObjectURL(blob);const a=win.document.createElement('a');a.href=url;a.download=fileName;win.document.body.append(a);a.click();a.remove();win.setTimeout(()=>win.URL.revokeObjectURL(url),60000)}
  action('⬅ Volver a la ficha',back);
- action('💾 Guardar PDF',async()=>{try{downloadBlob(await getPdf());status.textContent='PDF descargado. Podés volver a la ficha.'}catch(e){}});
+ action('💾 Guardar PDF en ficha',async()=>{try{const blob=await getPdf();await saveToClient(blob);status.textContent='Recibo PDF guardado en la ficha del cliente, junto a sus fotos y documentos.'}catch(e){status.textContent='No se pudo guardar el recibo en la ficha: '+e.message}});
+ action('⬇ Descargar PDF',async()=>{try{downloadBlob(await getPdf());status.textContent='PDF descargado.'}catch(e){}});
  action('📤 Enviar PDF (WhatsApp / correo)',async()=>{
-  try{const blob=await getPdf(),file=new File([blob],fileName,{type:'application/pdf'});
+  try{const blob=await getPdf();try{await saveToClient(blob)}catch(e){status.textContent='Aviso: no se guardó en la ficha: '+e.message}const file=new File([blob],fileName,{type:'application/pdf'});
    if(win.navigator.canShare?.({files:[file]})&&win.navigator.share){await win.navigator.share({files:[file],title:'Recibo CLERC '+number});status.textContent='Elegí WhatsApp, correo u otra aplicación para enviar el PDF.'}
    else{downloadBlob(blob);status.textContent='PDF descargado. Adjuntalo desde Descargas en WhatsApp o correo.';win.alert('Este navegador no permite adjuntar directamente el PDF. Ya lo descargamos: abrí WhatsApp o tu correo y adjuntá '+fileName)}
   }catch(e){if(e.name!=='AbortError')status.textContent='No se pudo compartir el PDF: '+e.message}
