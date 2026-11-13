@@ -10,6 +10,7 @@ function refresh(){const x=record();if(x?.id!==current){if(typeof trashNotesList
 function requireRecord(){const x=refresh();if(!x){alert('Primero guardá el cliente o abrí su ficha con Editar.');return null}return x}
 $('openNotes').onclick=()=>{if(!requireRecord())return;notes.hidden=!notes.hidden;photos.hidden=true};
 $('openPhotos').onclick=async()=>{const x=requireRecord();if(!x)return;photos.hidden=!photos.hidden;notes.hidden=true;if(!photos.hidden)await listPhotos(x)};
+$('openReceipts').onclick=async()=>{const x=requireRecord();if(!x)return;photos.hidden=false;notes.hidden=true;await listPhotos(x);$('clientFilesTitle').scrollIntoView({behavior:'smooth',block:'start'})};
 function coords(e){const b=canvas.getBoundingClientRect();return {x:(e.clientX-b.left)*canvas.width/b.width,y:(e.clientY-b.top)*canvas.height/b.height}}
 canvas.addEventListener('pointerdown',e=>{drawing=true;canvas.setPointerCapture(e.pointerId);const p=coords(e);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+.1,p.y+.1);ctx.stroke();hasDrawing=true});
 canvas.addEventListener('pointermove',e=>{if(!drawing)return;const p=coords(e);ctx.lineTo(p.x,p.y);ctx.stroke()});
