@@ -388,22 +388,23 @@ function printClientReceipt(x,m){
  action('⬅ Volver a la ficha',back);
  action('💾 Guardar PDF en ficha',async()=>{try{const blob=await getPdf();await saveToClient(blob);status.textContent='Recibo PDF guardado en la ficha del cliente, junto a sus fotos y documentos.'}catch(e){status.textContent='No se pudo guardar el recibo en la ficha: '+e.message}});
  action('⬇ Descargar PDF',async()=>{try{downloadBlob(await getPdf());status.textContent='PDF descargado.'}catch(e){}});
- action('📤 Enviar PDF (WhatsApp / correo)',async()=>{
+ action('🟢 Enviar PDF por WhatsApp Business',async()=>{
   let blob;
   try{blob=await getPdf()}catch(e){status.textContent='No se pudo preparar el PDF: '+e.message;return}
   try{await saveToClient(blob)}catch(e){status.textContent='El PDF está preparado, pero no se pudo archivar en la ficha: '+e.message}
   const file=new File([blob],fileName,{type:'application/pdf'});
   if(win.navigator.canShare?.({files:[file]})&&win.navigator.share){
+   status.textContent='Seleccioná WhatsApp Business (icono verde con B) en el menú de compartir. No el WhatsApp personal.';
    try{
     await win.navigator.share({files:[file],title:'Recibo CLERC '+number});
-    status.textContent='Compartido mediante la aplicación elegida.';return
+    status.textContent='Se abrió el menú de compartir. Comprobá que elegiste WhatsApp Business.';return
    }catch(e){
     if(e.name==='AbortError'){status.textContent='Envío cancelado. El recibo sigue disponible.';return}
    }
   }
   downloadBlob(blob);
-  status.textContent='PDF descargado correctamente. Abrí WhatsApp o correo y adjuntá el PDF desde Descargas.';
-  win.alert('Tu móvil no permite compartir directamente desde esta ventana. El PDF se descargó como '+fileName+'. Para enviarlo: abrí WhatsApp o correo, tocá Adjuntar > Documento y elegí el PDF de Descargas.')
+  status.textContent='PDF descargado. Abrí WhatsApp Business y adjuntalo desde Descargas.';
+  win.alert('Tu móvil no permite compartir directamente desde esta ventana. El PDF se descargó como '+fileName+'. Para enviarlo: abrí WhatsApp Business (icono con B), tocá Adjuntar > Documento y elegí el PDF de Descargas.')
  });
  action('🖨️ Imprimir / guardar PDF',()=>win.print());
  win.document.body.prepend(status);win.document.body.prepend(bar);
