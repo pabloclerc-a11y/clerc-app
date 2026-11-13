@@ -372,10 +372,21 @@ function printClientReceipt(x,m){
  action('💾 Guardar PDF en ficha',async()=>{try{const blob=await getPdf();await saveToClient(blob);status.textContent='Recibo PDF guardado en la ficha del cliente, junto a sus fotos y documentos.'}catch(e){status.textContent='No se pudo guardar el recibo en la ficha: '+e.message}});
  action('⬇ Descargar PDF',async()=>{try{downloadBlob(await getPdf());status.textContent='PDF descargado.'}catch(e){}});
  action('📤 Enviar PDF (WhatsApp / correo)',async()=>{
-  try{const blob=await getPdf();try{await saveToClient(blob)}catch(e){status.textContent='Aviso: no se guardó en la ficha: '+e.message}const file=new File([blob],fileName,{type:'application/pdf'});
-   if(win.navigator.canShare?.({files:[file]})&&win.navigator.share){await win.navigator.share({files:[file],title:'Recibo CLERC '+number});status.textContent='Elegí WhatsApp, correo u otra aplicación para enviar el PDF.'}
-   else{downloadBlob(blob);status.textContent='PDF descargado. Adjuntalo desde Descargas en WhatsApp o correo.';win.alert('Este navegador no permite adjuntar directamente el PDF. Ya lo descargamos: abrí WhatsApp o tu correo y adjuntá '+fileName)}
-  }catch(e){if(e.name!=='AbortError')status.textContent='No se pudo compartir el PDF: '+e.message}
+  let blob;
+  try{blob=await getPdf()}catch(e){status.textContent='No se pudo preparar el PDF: '+e.message;return}
+  try{await saveToClient(blob)}catch(e){status.textContent='El PDF está preparado, pero no se pudo archivar en la ficha: '+e.message}
+  const file=new File([blob],fileName,{type:'application/pdf'});
+  if(win.navigator.canShare?.({files:[file]})&&win.navigator.share){
+   try{
+    await win.navigator.share({files:[file],title:'Recibo CLERC '+number});
+    status.textContent='Compartido mediante la aplicación elegida.';return
+   }catch(e){
+    if(e.name==='AbortError'){status.textContent='Envío cancelado. El recibo sigue disponible.';return}
+   }
+  }
+  downloadBlob(blob);
+  status.textContent='PDF descargado correctamente. Abrí WhatsApp o correo y adjuntá el PDF desde Descargas.';
+  win.alert('Tu móvil no permite compartir directamente desde esta ventana. El PDF se descargó como '+fileName+'. Para enviarlo: abrí WhatsApp o correo, tocá Adjuntar > Documento y elegí el PDF de Descargas.')
  });
  action('🖨️ Imprimir / guardar PDF',()=>win.print());
  win.document.body.prepend(status);win.document.body.prepend(bar);
