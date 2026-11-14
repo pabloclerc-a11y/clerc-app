@@ -106,7 +106,7 @@ async function listPhotos(x){
     const pdfLink=document.createElement('a');pdfLink.href=base+'/storage/v1'+d.signedURL;pdfLink.target='_blank';pdfLink.rel='noopener';pdfLink.textContent='📄 '+f.name;pdfLink.style='max-width:220px;overflow-wrap:anywhere;font-weight:700;padding:12px;border:1px solid #c8d7e8;border-radius:8px;background:#f2f6fc';tile.append(pdfLink);
     const savePdf=document.createElement('button');savePdf.type='button';savePdf.className='btn secondary';savePdf.textContent='⬇ Descargar PDF';savePdf.onclick=async()=>{try{const r=await fetch(pdfLink.href);if(!r.ok)throw Error('No se pudo descargar');const url=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=url;a.download=f.name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)}catch(e){$('photosStatus').textContent=e.message}};tile.append(savePdf);list.append(tile);shown++;continue
    }
-   const img=document.createElement('img');img.src=base+'/storage/v1'+d.signedURL;img.alt='Foto del cliente';img.style='width:130px;height:130px;object-fit:cover;border-radius:8px;cursor:pointer';img.onclick=()=>window.open(img.src,'_blank');
+   const img=document.createElement('img');img.src=base+'/storage/v1'+d.signedURL;img.alt='Foto del cliente';img.style='width:130px;height:130px;object-fit:cover;border-radius:8px;cursor:pointer';img.onclick=()=>window.open(img.src,'_blank');img.onerror=()=>{img.alt='No se pudo mostrar la foto';img.style.objectFit='contain';img.style.background='#fff0f0';img.style.border='2px solid #c33';img.title='No se pudo cargar esta foto. Revisá la conexión y volvé a abrir Fotos y documentos.'};
    const remove=document.createElement('button');remove.type='button';remove.className='btn secondary';remove.style='padding:8px;color:#a21c22';remove.textContent='🗑️ Quitar foto';
    remove.onclick=async()=>{
     if(!confirm('¿Quitar esta foto de la ficha de '+x.nombre+'? La foto seguirá almacenada en la nube.'))return;
@@ -156,13 +156,27 @@ function handlePhotoChange(e){
  pendingClientId=x.id;
  let added=0,invalid=0;
  for(const file of Array.from(e.target.files||[])){
-  if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>10*1024*1024){invalid++;continue}
+  if(!(file.type.startsWith('image/')||/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name))||file.size>35*1024*1024){invalid++;continue}
   pendingPhotos.push(file);added++;
  }
  e.target.value='';drawPendingPhotos();
- $('photosStatus').textContent=(added?pendingPhotos.length+' foto(s) preparadas. Podés seguir sacando fotos o pulsar Guardar todas las fotos.':'')+(invalid?' '+invalid+' archivo(s) no admitidos (JPG, PNG o WEBP, máximo 10 MB).':'');
+ $('photosStatus').textContent=(added?pendingPhotos.length+' foto(s) preparadas. Podés seguir sacando fotos o pulsar Guardar todas las fotos.':'')+(invalid?' '+invalid+' archivo(s) no admitidos (imagen de hasta 35 MB).':'');
 }
 discardAll.onclick=()=>{if(uploadingPhotos)return;pendingPhotos=[];pendingClientId=null;drawPendingPhotos();$('photosStatus').textContent='Fotos pendientes descartadas. Las fotos guardadas no se modificaron.'};
+async function preparePhoto(file){
+ const supported=['image/jpeg','image/png','image/webp'].includes(file.type);
+ if(supported&&file.size<=9*1024*1024)return {blob:file,type:file.type,ext:file.type==='image/jpeg'?'jpg':file.type.split('/')[1]};
+ let bitmap;
+ try{bitmap=await createImageBitmap(file)}catch(e){throw Error('La tablet no puede leer esta foto ('+(file.name||file.type||'formato desconocido')+'). Probá configurar la cámara en JPG o seleccionar una foto JPG.')}
+ try{
+  const max=2400,scale=Math.min(1,max/Math.max(bitmap.width,bitmap.height)),canvas=document.createElement('canvas');
+  canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+  canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.82));
+  if(!blob)throw Error('No se pudo convertir la foto');
+  return {blob,type:'image/jpeg',ext:'jpg'}
+ }finally{bitmap.close?.()}
+}
 saveAll.onclick=async()=>{
  if(uploadingPhotos||!pendingPhotos.length)return;
  const x=requireRecord();if(!x)return;
@@ -171,10 +185,11 @@ saveAll.onclick=async()=>{
  uploadingPhotos=true;drawPendingPhotos();
  const total=pendingPhotos.length;let saved=0;
  for(const file of [...pendingPhotos]){
-  const name=a.user.id+'/'+x.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+file.type.split('/')[1];
   try{
-   $('photosStatus').textContent='Guardando '+(saved+1)+' de '+total+' fotos…';
-   await api('/storage/v1/object/'+bucket+'/'+name,{method:'POST',headers:{'Content-Type':file.type,'x-upsert':'false'},body:file});
+   $('photosStatus').textContent='Preparando y guardando '+(saved+1)+' de '+total+' fotos…';
+   const prepared=await preparePhoto(file);
+   const name=a.user.id+'/'+x.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+prepared.ext;
+   await api('/storage/v1/object/'+bucket+'/'+name,{method:'POST',headers:{'Content-Type':prepared.type,'x-upsert':'false'},body:prepared.blob});
    pendingPhotos.shift();saved++
   }catch(err){$('photosStatus').textContent='Se guardaron '+saved+' fotos. Quedan '+pendingPhotos.length+' pendientes. Error: '+err.message;break}
  }
