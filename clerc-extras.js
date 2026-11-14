@@ -93,14 +93,13 @@ async function listPhotos(x){
   const a=session();if(!a?.user?.id)throw Error('Iniciá sesión en la nube.');
   const prefix=a.user.id+'/'+x.id;
   const r=await api('/storage/v1/object/list/'+bucket,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefix,limit:100,sortBy:{column:'created_at',order:'desc'}})});
-  const files=await r.json();let shown=0;
+  const files=await r.json();if(!Array.isArray(files))throw Error('Respuesta incorrecta al consultar archivos');let shown=0,failed=0;
   for(const f of files){
-   if(!f.name||f.id===null)continue;
+   if(!f.name||f.name==='.emptyFolderPlaceholder')continue;
    const path=prefix+'/'+f.name;
    const latest=load().find(c=>c.id===x.id)||x;
    if((latest.fotosOcultas||[]).includes(path))continue;
-   const signed=await api('/storage/v1/object/sign/'+bucket+'/'+encodeURIComponent(path).replaceAll('%2F','/'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({expiresIn:3600})});
-   const d=await signed.json();
+   let d;try{const signed=await api('/storage/v1/object/sign/'+bucket+'/'+encodeURIComponent(path).replaceAll('%2F','/'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({expiresIn:3600})});d=await signed.json();if(!d.signedURL)throw Error('No se recibió enlace de archivo')}catch(e){failed++;const warn=document.createElement('p');warn.textContent='⚠️ Archivo no disponible: '+f.name+' ('+e.message+')';list.append(warn);continue}
    const tile=document.createElement('div');tile.style='display:flex;flex-direction:column;gap:6px;align-items:center';
    if(/\\.pdf$/i.test(f.name)){
     const pdfLink=document.createElement('a');pdfLink.href=base+'/storage/v1'+d.signedURL;pdfLink.target='_blank';pdfLink.rel='noopener';pdfLink.textContent='📄 '+f.name;pdfLink.style='max-width:220px;overflow-wrap:anywhere;font-weight:700;padding:12px;border:1px solid #c8d7e8;border-radius:8px;background:#f2f6fc';tile.append(pdfLink);
@@ -116,7 +115,7 @@ async function listPhotos(x){
    };
    const save=document.createElement('button');save.type='button';save.className='btn secondary';save.style='padding:8px';save.textContent='⬇ Guardar en dispositivo';save.onclick=async()=>{try{const res=await fetch(img.src);if(!res.ok)throw Error('No se pudo descargar');const blob=await res.blob();const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=f.name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);$('photosStatus').textContent='Foto descargada. En Android puede aparecer en Descargas; desde allí podés moverla a la galería.'}catch(e){$('photosStatus').textContent='No se pudo descargar: '+e.message}};tile.append(img,remove,save);list.append(tile);shown++;
   }
-  $('photosStatus').textContent=shown?shown+' foto(s) visibles.':'Todavía no hay fotos visibles.';
+  $('photosStatus').textContent=(shown?shown+' archivo(s) encontrados.':'No hay archivos en la carpeta de este cliente.')+(failed?' '+failed+' archivo(s) no se pudieron abrir.':'');
  }catch(e){$('photosStatus').textContent='No se pudieron cargar las fotos: '+e.message}
 }
 const trashPhotosBtn=document.createElement('button');trashPhotosBtn.type='button';trashPhotosBtn.className='btn secondary';trashPhotosBtn.textContent='♻️ Fotos eliminadas';$('photosArea').insertBefore(trashPhotosBtn,$('clientPhotoList'));
@@ -195,7 +194,7 @@ saveAll.onclick=async()=>{
  }
  uploadingPhotos=false;drawPendingPhotos();
  if(!pendingPhotos.length){pendingClientId=null;$('photosStatus').textContent='Se guardaron las '+saved+' fotos en la nube.'}
- if(saved)await listPhotos(x);
+ if(saved){await listPhotos(x);if(!pendingPhotos.length)$('photosStatus').textContent+=' Cerrá y volvé a abrir Fotos y documentos para comprobar que siguen allí.'}
  if(pendingPhotos.length)$('photosStatus').textContent='Se guardaron '+saved+' fotos. Quedan '+pendingPhotos.length+' pendientes para volver a intentar.';
 };
 $('clientPhotoInput').addEventListener('change',handlePhotoChange);
