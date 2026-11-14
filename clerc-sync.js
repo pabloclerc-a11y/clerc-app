@@ -5,6 +5,10 @@ const $=id=>document.getElementById(id);
 const host=$('exportClients')?.closest('.transfer-box');if(!host)return;
 const box=document.createElement('div');box.className='transfer-box';box.innerHTML='<strong>☁ Sincronización entre ordenador y móvil</strong><p>Utiliza la misma cuenta en ambos dispositivos. Tus clientes no se publican en GitHub.</p><div id="cloudLogin"><input id="cloudEmail" type="email" placeholder="Correo electrónico"><input id="cloudPass" type="password" placeholder="Contraseña"><button type="button" id="cloudEnter">Entrar</button> <button type="button" id="cloudSignup">Crear cuenta</button> <button type="button" id="cloudRecover">¿Olvidaste tu contraseña?</button></div><div id="cloudReset" hidden><input id="cloudNewPass" type="password" placeholder="Nueva contraseña"><button type="button" id="cloudChangePass">Guardar contraseña</button></div><div id="cloudActive" hidden><span id="cloudWho"></span> <button type="button" id="cloudSync">Sincronizar ahora</button> <button type="button" id="cloudLogout">Salir</button></div><p id="cloudStatus" role="status">Sin conectar. Los datos locales permanecen intactos.</p>';
 host.parentNode.insertBefore(box,host);
+const quick=document.createElement('button');quick.type='button';quick.className='btn primary';quick.textContent='☁ INICIAR SESIÓN EN LA NUBE';quick.style='margin:12px 0;padding:12px;font-weight:bold';
+quick.onclick=()=>{box.scrollIntoView({behavior:'smooth',block:'center'});if(!$('cloudLogin').hidden)$('cloudEmail').focus()};
+const topTarget=$('clientExtras')||host;topTarget.parentNode.insertBefore(quick,topTarget);
+
 let auth=null,busy=false,queued=false;
 function status(s){$('cloudStatus').textContent=s}
 function display(){let yes=!!auth?.access_token;$('cloudLogin').hidden=yes;$('cloudActive').hidden=!yes;$('cloudWho').textContent=yes?(auth.user?.email||'Cuenta conectada'):''}
