@@ -7,11 +7,11 @@ const box=document.createElement('div');box.className='transfer-box';box.innerHT
 host.parentNode.insertBefore(box,host);
 const quick=document.createElement('button');quick.type='button';quick.className='btn primary';quick.textContent='☁ INICIAR SESIÓN EN LA NUBE';quick.style='margin:12px 0;padding:12px;font-weight:bold';
 quick.onclick=()=>{box.scrollIntoView({behavior:'smooth',block:'center'});if(!$('cloudLogin').hidden)$('cloudEmail').focus()};
-const topTarget=$('clientExtras')||host;topTarget.parentNode.insertBefore(quick,topTarget);
+box.insertBefore(quick,box.firstChild);
 
 let auth=null,busy=false,queued=false;
 function status(s){$('cloudStatus').textContent=s}
-function display(){let yes=!!auth?.access_token;$('cloudLogin').hidden=yes;$('cloudActive').hidden=!yes;$('cloudWho').textContent=yes?(auth.user?.email||'Cuenta conectada'):''}
+function display(){let yes=!!auth?.access_token;quick.textContent=yes?'☁ NUBE CONECTADA · VER SINCRONIZACIÓN':'☁ INICIAR SESIÓN EN LA NUBE';$('cloudLogin').hidden=yes;$('cloudActive').hidden=!yes;$('cloudWho').textContent=yes?(auth.user?.email||'Cuenta conectada'):''}
 async function req(path,options={}){let h={'apikey':pub,'Content-Type':'application/json',...(auth?.access_token?{'Authorization':'Bearer '+auth.access_token}:{}),...(options.headers||{})};let r=await fetch(base+path,{...options,headers:h}),t=await r.text(),d;try{d=t?JSON.parse(t):null}catch{d=t}if(!r.ok)throw Error(d?.msg||d?.message||d?.error_description||d?.error||'Error '+r.status);return d}
 function setAuth(d){auth=d;localStorage.setItem(sessionKey,JSON.stringify(d));display()}
 async function ensure(){if(!auth)return false;if(auth.expires_at&&Date.now()<auth.expires_at*1000-60000)return true;if(!auth.refresh_token)return true;try{let d=await req('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:auth.refresh_token})});d.expires_at=Math.floor(Date.now()/1000)+(d.expires_in||3600);setAuth(d);return true}catch{auth=null;localStorage.removeItem(sessionKey);display();status('Sesión caducada. Volvé a entrar.');return false}}
