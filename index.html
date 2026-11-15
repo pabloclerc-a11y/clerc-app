@@ -288,7 +288,7 @@ window.clercWorksLoaded=true;
 const money=n=>Number(n||0).toLocaleString('es-ES',{style:'currency',currency:'EUR'});
 const val=n=>Math.round((Number(n)||0)*100)/100;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const types=['Trabajo agregado','Compra a cargo del cliente','Cobro del cliente','Compra de materiales','Mano de obra','Transporte','Otros gastos'];
+const types=['Trabajo agregado','Compra a cargo del cliente','Pago del cliente','Compra de materiales','Mano de obra','Transporte','Otros gastos'];
 const pay=['Efectivo','Bizum','Transferencia','Otra'];
 let section='';
 const crew=document.getElementById('workCrew');
