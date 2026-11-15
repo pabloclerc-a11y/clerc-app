@@ -190,7 +190,18 @@ let savedFormSnapshot='';
 function formSnapshot(){return JSON.stringify(userFields.map(name=>{const el=form.elements[name];return name==='estado'?(form.querySelector('input[name="estado"]:checked')?.value||''):el?.value||''}))}
 function rememberForm(){savedFormSnapshot=formSnapshot()}
 function hasUnsavedChanges(){return entry.hidden&&formSnapshot()!==savedFormSnapshot}
-function confirmLeave(){return !hasUnsavedChanges()||window.confirm('Tienes datos del cliente sin guardar. ¿Quieres salir sin guardarlos?')}
+function confirmLeave(){
+ if(!hasUnsavedChanges())return true;
+ const answer=window.prompt('Hay cambios sin guardar. Escribí:\\nGUARDAR para guardar antes de salir\\nDESCARTAR para salir sin guardar\\nCANCELAR para seguir editando','GUARDAR');
+ if(answer===null)return false;
+ const choice=answer.trim().toUpperCase();
+ if(choice==='CANCELAR'||!choice)return false;
+ if(choice==='DESCARTAR')return true;
+ if(choice!=='GUARDAR'){alert('Escribí GUARDAR, DESCARTAR o CANCELAR.');return false}
+ form.requestSubmit();
+ if(msg.className!=='success'){alert('No se pudo guardar. Revisá los campos señalados antes de cambiar de página.');return false}
+ rememberForm();return true
+}
 for(const id of ['goHome','goHomeTop'])document.getElementById(id).addEventListener('click',()=>{if(!confirmLeave())return;clear();openEntry();rememberForm()});
 for(const id of ['clear','cancel'])document.getElementById(id).addEventListener('click',e=>{
   e.stopImmediatePropagation();
