@@ -182,6 +182,19 @@ document.getElementById('pendingToday').addEventListener('click',()=>{renderPend
 document.getElementById('pendingBack').addEventListener('click',()=>{document.getElementById('pendingView').hidden=true;document.getElementById('mainApp').hidden=false;openEntry()});
 renderPending();
 function selectClient(x){clear();editId=x.id;for(const [k,v] of Object.entries(x)){if(form.elements[k]&&k!=='id'){if(k==='estado'||k==='resultadoPresupuesto'){const radio=form.querySelector('input[name="'+k+'"][value="'+v+'"]');if(radio)radio.checked=true}else form.elements[k].value=v||''}}resetSelectionDates(x);document.dispatchEvent(new Event('clerc-client-changed'));tel();schedulePostal();updateMap();entry.hidden=true;msg.textContent='Cliente existente seleccionado. Puedes actualizar sus datos.';msg.className='';}
+window.clercOpenClientFromCalendar=function(id){
+ const x=load().find(c=>String(c.id)===String(id));if(!x){alert('No se encontró la ficha del cliente.');return}
+ if(typeof confirmLeave==='function'&&!confirmLeave())return;
+ document.getElementById('worksView').hidden=true;
+ document.getElementById('pendingView').hidden=true;
+ document.getElementById('mainApp').hidden=false;
+ if(typeof showMainForm==='function')showMainForm();
+ selectClient(x);updateRecommendedField();updateVisitSchedule();
+ const cal=document.getElementById('blocksPanel');if(cal)cal.hidden=true;
+ window.clercGeneralCalendar=false;
+ if(typeof rememberForm==='function')rememberForm();
+ window.scrollTo({top:0,behavior:'smooth'});
+};
 function listExisting(){const q=searchExisting.value.toLocaleLowerCase('es').trim();existingList.replaceChildren();const matches=load().filter(x=>[x.nombre,x.apellidos,x.telefono].join(' ').toLocaleLowerCase('es').includes(q));if(!matches.length){const p=document.createElement('p');p.className='entrysmall';p.textContent='No hay clientes guardados que coincidan.';existingList.appendChild(p)}matches.forEach(x=>{const b=document.createElement('button');b.type='button';b.textContent=[x.nombre,x.apellidos,'·',x.telefono].filter(Boolean).join(' ');b.addEventListener('click',()=>selectClient(x));existingList.appendChild(b)})}
 document.getElementById('newClient').addEventListener('click',()=>{clear();entry.hidden=true});document.getElementById('otherClient').addEventListener('click',()=>{navToClients();if(entry.hidden){const search=document.getElementById('clientListSearch');search?.focus()}});searchExisting.addEventListener('input',listExisting);existingList.addEventListener('click',e=>{if(e.target.closest('button'))queueMicrotask(rememberForm)});
 // Aviso de salida: solo si el usuario ha modificado datos sin guardarlos.
