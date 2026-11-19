@@ -210,7 +210,27 @@ function renderClientWorks(){
   const detail=document.createElement('p');detail.className='note';detail.textContent='Estado: '+(x.resultadoPresupuesto||'Pendiente')+' · Inicio: '+(x.obraInicio||'—')+' · Final: '+(x.obraFin||'—');
   const open=document.createElement('button');open.type='button';open.className='btn secondary';open.textContent='Abrir esta obra';open.disabled=x.id===editId;open.onclick=()=>{if(typeof confirmLeave==='function'&&!confirmLeave())return;selectClient(x);updateRecommendedField();updateVisitSchedule();if(typeof rememberForm==='function')rememberForm();document.getElementById('clientWorks').scrollIntoView({behavior:'smooth',block:'start'})};
   const rename=document.createElement('button');rename.type='button';rename.className='btn secondary';rename.style.marginLeft='6px';rename.textContent='Renombrar';rename.onclick=()=>{const v=prompt('Nombre de la obra:',workLabel(x));if(!v?.trim())return;const a=load(),j=a.findIndex(y=>y.id===x.id);if(j<0)return;a[j]={...a[j],clercWorkName:v.trim(),actualizado:new Date().toISOString()};store(a);document.dispatchEvent(new Event('clerc-client-changed'));renderClientWorks()};
-  row.append(name,detail,open,rename);host.append(row);
+  const remove=document.createElement('button');remove.type='button';remove.className='btn secondary';remove.style.cssText='margin-left:6px;color:#a21c22';remove.textContent='🗑️ Eliminar esta obra';
+  remove.disabled=related.length<=1;
+  remove.title=related.length<=1?'Es la única obra: se conserva la ficha del cliente':'Eliminar solamente esta obra';
+  remove.onclick=async()=>{
+   if(related.length<=1){alert('No se puede eliminar la única obra desde aquí: se conserva la ficha del cliente.');return}
+   if(typeof window.clercDeleteClient!=='function'){alert('Para eliminar una obra necesitás la sincronización en la nube.');return}
+   const label=workLabel(x);
+   if(!confirm('¿Eliminar definitivamente SOLO la obra «'+label+'»?\\n\\nSe eliminarán sus fechas, movimientos y datos de obra. Las demás obras y la ficha del cliente se conservarán.'))return;
+   remove.disabled=true;
+   try{
+    await window.clercDeleteClient(x.id);
+    if(editId===x.id){
+     const remaining=load().find(y=>workGroup(y)===group);
+     if(remaining){selectClient(remaining);updateRecommendedField();updateVisitSchedule();if(typeof rememberForm==='function')rememberForm()}
+     else{clear();if(typeof rememberForm==='function')rememberForm()}
+    }
+    renderClientWorks();
+    alert('Obra eliminada. Las demás obras del cliente siguen guardadas.');
+   }catch(e){alert('No se pudo eliminar la obra: '+e.message);remove.disabled=false}
+  };
+  row.append(name,detail,open,rename,remove);host.append(row);
  });
  const summary=document.createElement('p');summary.className='note';summary.textContent='Obras: '+related.length+' · Saldo orientativo total del cliente: '+total.toLocaleString('es-ES',{style:'currency',currency:'EUR'});host.append(summary);
 }
