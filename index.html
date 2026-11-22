@@ -182,7 +182,7 @@ for(const x of visits){const el=document.createElement('div');el.className='pane
 document.getElementById('pendingToday').addEventListener('click',()=>{renderPending();entry.hidden=true;document.getElementById('worksView').hidden=true;document.getElementById('mainApp').hidden=true;document.getElementById('pendingView').hidden=false;window.scrollTo({top:0,behavior:'instant'})});
 document.getElementById('pendingBack').addEventListener('click',()=>{document.getElementById('pendingView').hidden=true;document.getElementById('mainApp').hidden=false;openEntry()});
 renderPending();
-function selectClient(x){document.getElementById('worksView').hidden=true;document.getElementById('pendingView').hidden=true;document.getElementById('mainApp').hidden=false;showMainForm();const blocks=document.getElementById('blocksPanel');if(blocks)blocks.hidden=true;window.clercGeneralCalendar=false;clear();editId=x.id;for(const [k,v] of Object.entries(x)){if(form.elements[k]&&k!=='id'){if(k==='estado'||k==='resultadoPresupuesto'){const radio=form.querySelector('input[name="'+k+'"][value="'+v+'"]');if(radio)radio.checked=true}else form.elements[k].value=v||''}}resetSelectionDates(x);updateRecommendedField();updateVisitSchedule();document.dispatchEvent(new Event('clerc-client-changed'));tel();schedulePostal();updateMap();entry.hidden=true;msg.textContent='Cliente existente seleccionado. Puedes actualizar sus datos.';msg.className='';}
+function selectClient(x){document.getElementById('worksView').hidden=true;document.getElementById('pendingView').hidden=true;document.getElementById('mainApp').hidden=false;showMainForm();const blocks=document.getElementById('blocksPanel');if(blocks)blocks.hidden=true;window.clercGeneralCalendar=false;clear();editId=x.id;for(const [k,v] of Object.entries(x)){if(form.elements[k]&&k!=='id'){if(k==='estado'||k==='resultadoPresupuesto'){const radio=form.querySelector('input[name="'+k+'"][value="'+v+'"]');if(radio)radio.checked=true}else form.elements[k].value=v||''}}resetSelectionDates(x);updateRecommendedField();updateVisitSchedule();document.dispatchEvent(new Event('clerc-client-changed'));tel();schedulePostal();updateMap();entry.hidden=true;msg.textContent='Cliente existente seleccionado. Puedes actualizar sus datos.';msg.className='';if(typeof rememberForm==='function')rememberForm();}
 window.clercOpenClientFromCalendar=function(id){
  const x=load().find(c=>String(c.id)===String(id));if(!x){alert('No se encontró la ficha del cliente.');return}
  if(typeof confirmLeave==='function'&&!confirmLeave())return;
@@ -259,7 +259,7 @@ function rememberForm(){savedFormSnapshot=formSnapshot()}
 function hasUnsavedChanges(){return entry.hidden&&formSnapshot()!==savedFormSnapshot}
 function confirmLeave(){
  if(!hasUnsavedChanges())return true;
- const answer=window.prompt('Hay cambios sin guardar. Escribí:\\nGUARDAR para guardar antes de salir\\nDESCARTAR para salir sin guardar\\nCANCELAR para seguir editando','GUARDAR');
+ const answer=window.prompt('Hay cambios sin guardar.\\n\\nEscribí GUARDAR para guardarlos, DESCARTAR para salir sin guardar o CANCELAR para quedarte.','GUARDAR');
  if(answer===null)return false;
  const choice=answer.trim().toUpperCase();
  if(choice==='CANCELAR'||!choice)return false;
@@ -307,7 +307,7 @@ document.getElementById('navClients').addEventListener('click',navToClients);
 
 // Al abrir un cliente desde el listado se muestra de nuevo su ficha.
 document.getElementById('saved').addEventListener('click',e=>{
- if(e.target.closest('button')){showMainForm();document.querySelector('#mainApp .top h1').textContent='🔵 Nueva llamada';setTimeout(rememberForm,0)}
+ if(e.target.closest('button')?.textContent?.trim()==='Editar'){showMainForm();document.querySelector('#mainApp .top h1').textContent='Ficha del cliente'}
 });
 document.getElementById('goHome').addEventListener('click',showMainForm);
 document.getElementById('goHomeTop').addEventListener('click',showMainForm);
