@@ -477,23 +477,32 @@ function printClientReceipt(x,m){
  action('⬅ Volver a la ficha',back);
  action('💾 Guardar PDF en ficha',async()=>{try{const blob=await getPdf();await saveToClient(blob);status.textContent='Recibo PDF guardado en la ficha del cliente, junto a sus fotos y documentos.'}catch(e){status.textContent='No se pudo guardar el recibo en la ficha: '+e.message}});
  action('⬇ Descargar PDF',async()=>{try{downloadBlob(await getPdf());status.textContent='PDF descargado.'}catch(e){}});
- action('🟢 Enviar PDF por WhatsApp Business',async()=>{
-  let blob;
-  try{blob=await getPdf()}catch(e){status.textContent='No se pudo preparar el PDF: '+e.message;return}
-  try{await saveToClient(blob)}catch(e){status.textContent='El PDF está preparado, pero no se pudo archivar en la ficha: '+e.message}
-  const file=new File([blob],fileName,{type:'application/pdf'});
-  if(win.navigator.canShare?.({files:[file]})&&win.navigator.share){
-   status.textContent='Seleccioná WhatsApp Business (icono verde con B) en el menú de compartir. No el WhatsApp personal.';
-   try{
-    await win.navigator.share({files:[file],title:'Recibo CLERC '+number});
-    status.textContent='Se abrió el menú de compartir. Comprobá que elegiste WhatsApp Business.';return
-   }catch(e){
-    if(e.name==='AbortError'){status.textContent='Envío cancelado. El recibo sigue disponible.';return}
-   }
-  }
-  downloadBlob(blob);
-  status.textContent='PDF descargado. Abrí WhatsApp Business y adjuntalo desde Descargas.';
-  win.alert('Tu móvil no permite compartir directamente desde esta ventana. El PDF se descargó como '+fileName+'. Para enviarlo: abrí WhatsApp Business (icono con B), tocá Adjuntar > Documento y elegí el PDF de Descargas.')
+ const shareButton=action('🟢 Preparar recibo para WhatsApp Business',async()=>{
+  shareButton.disabled=true;shareButton.textContent='⏳ Preparando PDF…';
+  try{
+   const blob=await getPdf();
+   const file=new File([blob],fileName,{type:'application/pdf'});
+   shareButton.textContent='🟢 COMPARTIR PDF AHORA';
+   shareButton.disabled=false;
+   status.textContent='PDF listo. Tocá COMPARTIR PDF AHORA y elegí WhatsApp Business. Si no aparece, descargá el PDF y adjuntalo como Documento.';
+   shareButton.onclick=()=>{
+    const shareNavigator=window.navigator;
+    if(shareNavigator.share&&(!shareNavigator.canShare||shareNavigator.canShare({files:[file]}))){
+     try{
+      const result=shareNavigator.share({files:[file],title:'Recibo CLERC '+number});
+      Promise.resolve(result).then(()=>{status.textContent='Se abrió el menú para compartir. Confirmá el envío desde WhatsApp Business.'}).catch(e=>{
+       if(e?.name==='AbortError'){status.textContent='Compartir cancelado. El PDF sigue preparado.';return}
+       status.textContent='No se pudo compartir directamente ('+(e?.message||'error del navegador')+'). Usá Descargar PDF y adjuntalo desde WhatsApp Business.';
+       downloadBlob(blob)
+      })
+     }catch(e){status.textContent='El navegador no permite compartir este archivo. PDF descargado para adjuntar desde WhatsApp Business.';downloadBlob(blob)}
+    }else{
+     downloadBlob(blob);
+     status.textContent='PDF descargado. Abrí WhatsApp Business > Adjuntar > Documento y seleccioná '+fileName+'.';
+     win.alert('Este dispositivo no permite compartir archivos PDF directamente desde el navegador. Descargamos el recibo. En WhatsApp Business tocá Adjuntar > Documento y elegí '+fileName+'.')
+    }
+   };
+  }catch(e){shareButton.disabled=false;shareButton.textContent='🟢 Reintentar preparar PDF';status.textContent='Error al preparar el recibo: '+e.message}
  });
  action('🖨️ Imprimir / guardar PDF',()=>win.print());
  win.document.body.prepend(status);win.document.body.prepend(bar);
