@@ -486,7 +486,7 @@ function printClientReceipt(x,m){
    shareButton.disabled=false;
    status.textContent='PDF listo. Tocá COMPARTIR PDF AHORA y elegí WhatsApp Business. Si no aparece, descargá el PDF y adjuntalo como Documento.';
    shareButton.onclick=()=>{
-    const shareNavigator=window.navigator;
+    const shareNavigator=win.navigator;
     if(shareNavigator.share&&(!shareNavigator.canShare||shareNavigator.canShare({files:[file]}))){
      try{
       const result=shareNavigator.share({files:[file],title:'Recibo CLERC '+number});
