@@ -482,9 +482,19 @@ function printClientReceipt(x,m){
   try{
    const blob=await getPdf();
    const file=new File([blob],fileName,{type:'application/pdf'});
+   let archived=false;
+   try{
+    await saveToClient(blob);
+    archived=true;
+    status.textContent='✓ Recibo PDF guardado en la ficha del cliente. Ya podés compartirlo.';
+   }catch(archiveError){
+    status.textContent='⚠️ ATENCIÓN: El recibo NO se guardó en la ficha: '+archiveError.message+'. Descargá una copia antes de salir.';
+    downloadBlob(blob);
+    win.alert('ATENCIÓN: el recibo NO se guardó en la ficha del cliente. Se descargó una copia PDF en este dispositivo. Podés compartirla, pero conservá el archivo hasta que se guarde en CLERC. Motivo: '+archiveError.message);
+   }
    shareButton.textContent='🟢 COMPARTIR PDF AHORA';
    shareButton.disabled=false;
-   status.textContent='PDF listo. Tocá COMPARTIR PDF AHORA y elegí WhatsApp Business. Si no aparece, descargá el PDF y adjuntalo como Documento.';
+   if(archived)status.textContent='✓ Recibo guardado en la ficha. Tocá COMPARTIR PDF AHORA y elegí WhatsApp Business.';
    shareButton.onclick=()=>{
     const shareNavigator=win.navigator;
     if(shareNavigator.share&&(!shareNavigator.canShare||shareNavigator.canShare({files:[file]}))){
