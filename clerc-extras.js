@@ -91,7 +91,7 @@ $('clientPdfInput').addEventListener('change',async e=>{
  const file=e.target.files?.[0];e.target.value='';
  if(!file)return;
  const x=requireRecord();if(!x)return;
- if(!(/\\.pdf$/i.test(file.name)||file.type==='application/pdf')||file.size>20*1024*1024){$('photosStatus').textContent='Seleccioná un archivo PDF de hasta 20 MB.';return}
+ if(!(/\.pdf$/i.test(file.name)||file.type==='application/pdf')||file.size>20*1024*1024){$('photosStatus').textContent='Seleccioná un archivo PDF de hasta 20 MB.';return}
  const input=$('clientPdfInput');input.disabled=true;
  $('photosStatus').textContent='Guardando recibo PDF en la ficha del cliente…';
  try{
@@ -118,8 +118,8 @@ async function listPhotos(x){
    if((latest.fotosOcultas||[]).includes(path))continue;
    let d;try{const signed=await api('/storage/v1/object/sign/'+bucket+'/'+encodeURIComponent(path).replaceAll('%2F','/'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({expiresIn:3600})});d=await signed.json();if(!d.signedURL)throw Error('No se recibió enlace de archivo')}catch(e){failed++;const warn=document.createElement('p');warn.textContent='⚠️ Archivo no disponible: '+f.name+' ('+e.message+')';list.append(warn);continue}
    const tile=document.createElement('div');tile.style='display:flex;flex-direction:column;gap:6px;align-items:center';
-   if(/\\.pdf$/i.test(f.name)){
-    const pdfLink=document.createElement('a');pdfLink.href=base+'/storage/v1'+d.signedURL;pdfLink.target='_blank';pdfLink.rel='noopener';pdfLink.textContent='📄 '+f.name;pdfLink.style='max-width:220px;overflow-wrap:anywhere;font-weight:700;padding:12px;border:1px solid #c8d7e8;border-radius:8px;background:#f2f6fc';tile.append(pdfLink);
+   if(/\.pdf$/i.test(f.name)||f.metadata?.mimetype==='application/pdf'){
+    const pdfLink=document.createElement('a');pdfLink.href=base+'/storage/v1'+d.signedURL;pdfLink.target='_blank';pdfLink.rel='noopener';const mid=f.name.match(/^Recibo_CLERC_(.+)\.pdf$/i)?.[1];const mov=(latest.obraMovimientos||[]).find(m=>String(m.id).replace(/[^a-zA-Z0-9_-]/g,'').slice(0,50)===mid);const date=f.created_at?new Date(f.created_at).toLocaleDateString('es-ES'):'';pdfLink.textContent='📄 RECIBO PDF · '+(mov?[mov.fecha||date,mov.concepto,(mov.importe!=null?Number(mov.importe).toLocaleString('es-ES',{style:'currency',currency:'EUR'}):'')].join(' · '):date+' · '+f.name);pdfLink.style='max-width:220px;overflow-wrap:anywhere;font-weight:700;padding:12px;border:1px solid #c8d7e8;border-radius:8px;background:#f2f6fc';tile.append(pdfLink);
     const savePdf=document.createElement('button');savePdf.type='button';savePdf.className='btn secondary';savePdf.textContent='⬇ Descargar PDF';savePdf.onclick=async()=>{try{const r=await fetch(pdfLink.href);if(!r.ok)throw Error('No se pudo descargar');const url=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=url;a.download=f.name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)}catch(e){$('photosStatus').textContent=e.message}};tile.append(savePdf);list.append(tile);shown++;continue
    }
    const img=document.createElement('img');img.src=base+'/storage/v1'+d.signedURL;img.alt='Foto del cliente';img.style='width:130px;height:130px;object-fit:cover;border-radius:8px;cursor:pointer';img.onclick=()=>window.open(img.src,'_blank');img.onerror=()=>{img.alt='No se pudo mostrar la foto';img.style.objectFit='contain';img.style.background='#fff0f0';img.style.border='2px solid #c33';img.title='No se pudo cargar esta foto. Revisá la conexión y volvé a abrir Fotos y documentos.'};
