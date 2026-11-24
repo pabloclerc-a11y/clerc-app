@@ -359,7 +359,7 @@ document.getElementById('importFile').addEventListener('change',async e=>{
  finally{input.value=''}
 });
 
-</script><script>if("serviceWorker" in navigator && location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}</script><script src="./clerc-sync.js?v=nube-ordenada-20261115" defer></script><script src="./clerc-extras.js?v=adjuntar-pdf-20261123" defer></script><script>(function(){
+</script><script>if("serviceWorker" in navigator && location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}</script><script src="./clerc-sync.js?v=nube-ordenada-20261115" defer></script><script src="./clerc-extras.js?v=verificar-recibos-20261124" defer></script><script>(function(){
 'use strict';
 const $=id=>document.getElementById(id),panel=$('workContent'),status=$('workStatus');
 window.clercWorksLoaded=true;
@@ -476,7 +476,7 @@ function printClientReceipt(x,m){
  function downloadBlob(blob){const url=win.URL.createObjectURL(blob);const a=win.document.createElement('a');a.href=url;a.download=fileName;win.document.body.append(a);a.click();a.remove();win.setTimeout(()=>win.URL.revokeObjectURL(url),60000)}
  action('⬅ Volver a la ficha',back);
  action('💾 Guardar PDF en ficha',async()=>{try{const blob=await getPdf();await saveToClient(blob);status.textContent='Recibo PDF guardado en la ficha del cliente, junto a sus fotos y documentos.'}catch(e){status.textContent='No se pudo guardar el recibo en la ficha: '+e.message}});
- action('⬇ Descargar PDF',async()=>{try{downloadBlob(await getPdf());status.textContent='PDF descargado.'}catch(e){}});
+ action('⬇ Descargar PDF',async()=>{try{const blob=await getPdf();downloadBlob(blob);try{await saveToClient(blob);status.textContent='✓ PDF descargado y guardado en la ficha.'}catch(e){status.textContent='PDF descargado, pero NO guardado en la ficha: '+e.message;win.alert(status.textContent)}}catch(e){win.alert('No se pudo generar el PDF: '+e.message)}});
  const shareButton=action('🟢 Preparar recibo para WhatsApp Business',async()=>{
   shareButton.disabled=true;shareButton.textContent='⏳ Preparando PDF…';
   try{
@@ -514,7 +514,7 @@ function printClientReceipt(x,m){
    };
   }catch(e){shareButton.disabled=false;shareButton.textContent='🟢 Reintentar preparar PDF';status.textContent='Error al preparar el recibo: '+e.message}
  });
- action('🖨️ Imprimir / guardar PDF',()=>win.print());
+ action('🖨️ Imprimir / guardar PDF',async()=>{try{const blob=await getPdf();await saveToClient(blob);status.textContent='✓ PDF guardado en la ficha.';win.print()}catch(e){status.textContent='NO se pudo guardar el recibo: '+e.message;win.alert(status.textContent+'. Conservá una copia si imprimís.');if(win.confirm('¿Imprimir sin guardar en CLERC?'))win.print()}});
  win.document.body.prepend(status);win.document.body.prepend(bar);
  const style=win.document.createElement('style');style.textContent='@media print{#receiptActions,#receiptStatus,.sign-clear{display:none!important}}';win.document.head.append(style);
 
