@@ -113,7 +113,7 @@ async function sync(){
   if(JSON.stringify(result)!==JSON.stringify(local)){
    localStorage.setItem('clerc_sync_backup_'+new Date().toISOString().slice(0,10),JSON.stringify(local));
    localStorage.setItem(KEY,JSON.stringify(result));
-   render();renderPending();
+   render();renderPending();document.dispatchEvent(new Event('clerc-client-changed'));
   }
   status('Sincronizados '+result.length+' clientes y '+blockCount+' bloqueos.');
  }catch(e){status('No se pudo sincronizar: '+e.message)}
@@ -127,5 +127,10 @@ $('cloudSync').onclick=sync;$('cloudLogout').onclick=()=>{auth=null;localStorage
 try{auth=JSON.parse(localStorage.getItem(sessionKey)||'null')}catch{}
 let hash=new URLSearchParams(location.hash.slice(1));if(hash.get('type')==='recovery'&&hash.get('access_token')){setAuth({access_token:hash.get('access_token'),refresh_token:hash.get('refresh_token'),expires_at:Math.floor(Date.now()/1000)+3600});$('cloudReset').hidden=false;history.replaceState(null,'',location.pathname)}
 display();if(auth)sync();document.addEventListener('clerc-blocks-sync-request',()=>{if(auth)sync()});
-window.addEventListener('focus',()=>{if(auth)sync()});
+function resumeSync(){if(auth&&navigator.onLine&&!document.hidden)sync()}
+window.addEventListener('focus',resumeSync);
+window.addEventListener('online',resumeSync);
+document.addEventListener('visibilitychange',resumeSync);
+window.addEventListener('pageshow',resumeSync);
+setInterval(resumeSync,30000);
 })();
