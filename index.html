@@ -427,7 +427,7 @@ function printClientReceipt(x,m){
  const status=win.document.createElement('p');status.id='receiptStatus';status.style='font-size:13px;text-align:center;color:#294867;margin:8px 0';
  const fileName='Recibo_CLERC_'+number+'.pdf';
  function action(label,fn){const b=win.document.createElement('button');b.textContent=label;b.type='button';b.style='padding:12px;border:0;border-radius:7px;background:#164b86;color:white;font-weight:bold;cursor:pointer';b.onclick=fn;bar.append(b);return b}
- function back(){try{if(win.opener&&!win.opener.closed)win.opener.focus();win.close();if(!win.closed){win.location.replace(new URL('./',location.href).href)}}catch{win.location.replace(new URL('./',location.href).href)}}
+ function back(){if(!win.confirm('¿Volver a la ficha? Si firmaste el recibo, asegurate de haber guardado el PDF antes de salir.'))return;try{selectClient(load().find(c=>String(c.id)===String(x.id))||x);window.focus();win.close();if(!win.closed){win.alert('La ficha está abierta en la pestaña anterior. Cerrá esta pestaña para volver.')}}catch(e){win.alert('Cerrá esta pestaña para volver a la ficha original.')}}
  function loadPdfLibrary(){
   return new Promise((resolve,reject)=>{
    if(win.jspdf?.jsPDF){resolve(win.jspdf.jsPDF);return}
@@ -515,8 +515,8 @@ function printClientReceipt(x,m){
   }catch(e){shareButton.disabled=false;shareButton.textContent='🟢 Reintentar preparar PDF';status.textContent='Error al preparar el recibo: '+e.message}
  });
  action('🖨️ Imprimir / guardar PDF',async()=>{try{const blob=await getPdf();await saveToClient(blob);status.textContent='✓ PDF guardado en la ficha.';win.print()}catch(e){status.textContent='NO se pudo guardar el recibo: '+e.message;win.alert(status.textContent+'. Conservá una copia si imprimís.');if(win.confirm('¿Imprimir sin guardar en CLERC?'))win.print()}});
- win.document.body.prepend(status);win.document.body.prepend(bar);
- const style=win.document.createElement('style');style.textContent='@media print{#receiptActions,#receiptStatus,.sign-clear{display:none!important}}';win.document.head.append(style);
+ win.document.body.prepend(status);win.document.body.prepend(bar);const bottomBack=win.document.createElement('button');bottomBack.type='button';bottomBack.id='receiptBottomBack';bottomBack.textContent='← VOLVER A LA FICHA DEL CLIENTE';bottomBack.style='display:block;width:100%;padding:16px;margin:20px 0;background:#164b86;color:white;border:0;border-radius:8px;font-weight:bold;font-size:16px';bottomBack.onclick=back;win.document.body.append(bottomBack);
+ const style=win.document.createElement('style');style.textContent='@media print{#receiptActions,#receiptStatus,#receiptBottomBack,.sign-clear{display:none!important}}';win.document.head.append(style);
 
 }
 function show(which){section=which;status.textContent='';if(!accepted()&&which!=='start'&&which!=='end'&&which!=='account'){update();status.textContent='Para la fianza y los movimientos, primero guardá el presupuesto como ACEPTADO.';return}panel.hidden=false;const x=client();if(!x){panel.innerHTML='<p>Primero guardá la ficha del cliente; después podrás elegir las fechas aunque el presupuesto siga sin definir.</p>';return}
