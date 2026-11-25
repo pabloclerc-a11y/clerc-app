@@ -87,20 +87,20 @@ window.clercSaveReceiptPdf=async function(clientId,receiptId,blob){
  if(record()?.id===x.id&&!photos.hidden)await listPhotos(x);
  return path
 };
-$('clientPdfInput').addEventListener('change',async e=>{
+$('clientPdfInput')?.addEventListener('change',async e=>{
  const file=e.target.files?.[0];e.target.value='';
  if(!file)return;
  const x=requireRecord();if(!x)return;
  if(!(/\.pdf$/i.test(file.name)||file.type==='application/pdf')||file.size>20*1024*1024){$('photosStatus').textContent='Seleccioná un archivo PDF de hasta 20 MB.';return}
  const input=$('clientPdfInput');input.disabled=true;
- $('photosStatus').textContent='Guardando recibo PDF en la ficha del cliente…';
+ $('photosStatus').textContent='Guardando documento PDF en la ficha del cliente…';
  try{
   const a=session();if(!a?.user?.id)throw Error('Primero iniciá sesión en la nube.');
   const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_').slice(0,90);
-  const path=a.user.id+'/'+x.id+'/Recibo_recuperado_'+Date.now()+'_'+safeName;
+  const path=a.user.id+'/'+x.id+'/Documento_'+Date.now()+'_'+safeName;
   await api('/storage/v1/object/'+bucket+'/'+path,{method:'POST',headers:{'Content-Type':'application/pdf','x-upsert':'false'},body:file});
   await listPhotos(x);
-  $('photosStatus').textContent='✓ Recibo PDF guardado en la ficha de '+(x.nombre||'este cliente')+'.';
+  $('photosStatus').textContent='✓ Documento PDF guardado en la ficha de '+(x.nombre||'este cliente')+'.';
  }catch(err){$('photosStatus').textContent='⚠️ No se guardó el PDF: '+err.message+'. Conservá el archivo descargado.'}
  finally{input.disabled=false}
 });
